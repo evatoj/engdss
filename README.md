@@ -2,10 +2,10 @@
 
 ## Documentação
 
-1. [Diagramas C4 de Contexto](/docs/Diagramas%20C4.md)
+1. [Diagramas C4 (níveis 1 e 2)](/docs/Diagramas%20C4.md)
 1. [ADRs](/docs/ADRs.md)
 1. [Plano de Testes](/docs/Plano%20de%20Testes.md)
-1. [Trade-offs, stack tecnológico](/docs/Trade-offs,%20stack%20tecnológico)
+1. [Trade-offs, stack tecnológico](/docs/Trade-offs,%20stack%20tecnológico.md)
 
 ## POC 3 — Ledger + PIX Sandbox com Idempotência
 
