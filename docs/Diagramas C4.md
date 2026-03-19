@@ -4,4 +4,4 @@
 
 # Diagrama de container
 
-![imagem do diagrama de container](./images/diagrama_c4_container.jpg)
+![imagem do diagrama de container](./images/diagrama_c4_container.png)
