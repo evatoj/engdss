@@ -12,8 +12,10 @@
 
 Implementar um ledger de dupla entrada (double-entry) integrado com a API PIX em sandbox garantindo idempotência e quarentena financeira
 
-* Henrique Fabrício de Souza Bandeira
-* João Victor da Silva Cirilo
-* João Victor Oliveira de Lima
-* Luiz Henrique dos Santos Souza
-* Matheus Yago Lima de Freitas
+## Grupo Responsável e Responsabilidades:
+
+* Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico)
+* João Victor da Silva Cirilo (Níveis 1 e 2 de Diagrama C4)
+* João Victor Oliveira de Lima (Nível 1 de Diagrama C4)
+* Luiz Henrique dos Santos Souza (Níveis 1 e 2 de Diagrama C4; Front-End do Projeto)
+* Matheus Yago Lima de Freitas (ADRs, padrões arquiteturais e justificativa)
