@@ -14,7 +14,7 @@ Implementar um ledger de dupla entrada (double-entry) integrado com a API PIX em
 
 ## Grupo Responsável e Responsabilidades:
 
-* Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico)
+* Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico; Front-End do Projeto)
 * João Victor da Silva Cirilo (Níveis 1 e 2 de Diagrama C4)
 * João Victor Oliveira de Lima (Nível 1 de Diagrama C4)
 * Luiz Henrique dos Santos Souza (Níveis 1 e 2 de Diagrama C4; Front-End do Projeto)
