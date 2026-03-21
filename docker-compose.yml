@@ -2,17 +2,19 @@ version: '3.8'
 
 services:
   frontend:
-    build: .
+    build: 
+      context: ./frontend/angular-engdss
+      dockerfile: ../Dockerfile.frontend
     container_name: angular-app
     ports:
       - "4200:4200"
-    volumes:
-      - .:/app
     depends_on:
       - backend
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.backend
     container_name: spring-app
     ports:
       - "8080:8080"
