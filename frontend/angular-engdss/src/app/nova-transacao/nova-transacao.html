@@ -1,1 +1,26 @@
-<p>nova-transacao works!</p>
+<p-toast></p-toast>
+<p-panel class="text-center">
+    <ng-template pTemplate="header">
+        <div class="justify-content-center w-full">
+            <h1 class="w-full">ENVIAR PIX</h1>
+        </div>
+    </ng-template>
+    <p-floatlabel variant="in" class="w-full">
+        <input id="chave" type="text" pInputText [(ngModel)]="form.chave" class="w-full m-2">
+        <label for="chave" class="p-1">Chave PIX</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in" class="w-full">
+        <p-inputnumber 
+        inputId="valor" 
+        [(ngModel)]="form.valor" 
+        class="w-full m-2"
+        mode="currency"
+        currency="BRL" />
+        <label for="valor" class="p-1">Valor</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in" class="w-full">
+        <input id="descricao" type="text" pInputText [(ngModel)]="form.descricao" class="w-full m-2">
+        <label for="descricao" class="p-1">Descrição</label>
+    </p-floatlabel>
+    <button pButton label="Salvar" class="mt-2" (click)="enviar_transacao()"></button>
+</p-panel>
