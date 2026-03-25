@@ -1,0 +1,35 @@
+.historico-container {
+  padding: 1.5rem;
+}
+
+.historico-header {
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  color: #6b7280;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.loading-row {
+  padding: 0.5rem 0;
+}

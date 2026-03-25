@@ -7,13 +7,9 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { PanelModule } from 'primeng/panel';
+import { nova_transacao_form } from '../../../models/nova_transacao';
 
 
-interface nova_transacao_form {
-  chave: string | null;
-  valor: number | null;
-  descricao: string | null;
-}
 @Component({
   selector: 'app-nova-transacao',
   imports: [PanelModule, ToastModule, InputTextModule, InputNumberModule, ButtonModule, FloatLabelModule, FormsModule],
