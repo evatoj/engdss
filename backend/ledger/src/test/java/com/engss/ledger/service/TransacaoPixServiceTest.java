@@ -103,4 +103,24 @@ class TransacaoPixServiceTest {
 
         assertEquals(2, transacoes.size());
     }
+
+    @Test
+    @DisplayName("Não deve criar transação para usuário inexistente")
+    void naoDeveCriarTransacaoParaUsuarioInexistente() {
+        assertThrows(RecursoNaoEncontradoException.class, () -> {
+            transacaoPixService.criarTransacao(
+                    999L,
+                    "teste@email.com",
+                    new BigDecimal("100.00"),
+                    "Pagamento");
+        });
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao listar transações de usuário inexistente")
+    void deveLancarExcecaoAoListarTransacoesDeUsuarioInexistente() {
+        assertThrows(RecursoNaoEncontradoException.class, () -> {
+            transacaoPixService.listarPorUsuario(999L);
+        });
+    }
 }

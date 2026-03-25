@@ -67,4 +67,15 @@ class UsuarioServiceTest {
             usuarioService.criarUsuario("Carlos", new BigDecimal("-10.00"));
         });
     }
+
+    @Test
+    @DisplayName("Deve listar todos os usuários")
+    void deveListarTodosOsUsuarios() {
+        usuarioRepository.save(new Usuario("João", new BigDecimal("100.00")));
+        usuarioRepository.save(new Usuario("Maria", new BigDecimal("200.00")));
+
+        var usuarios = usuarioService.listarTodos();
+
+        assertEquals(2, usuarios.size());
+    }
 }
