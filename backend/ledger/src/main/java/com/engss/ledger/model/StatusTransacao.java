@@ -3,5 +3,8 @@ package com.engss.ledger.model;
 public enum StatusTransacao {
     PENDENTE,
     CONCLUIDA,
-    FALHOU
+    FALHOU,
+    RECEBIDA,
+    EM_PROCESSAMENTO,
+    CANCELADA
 }

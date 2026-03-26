@@ -31,7 +31,7 @@ class UsuarioServiceTest {
 
         assertNotNull(usuario.getId());
         assertEquals("João", usuario.getNome());
-        assertEquals(new BigDecimal("1000.00"), usuario.getSaldo());
+        assertEquals(new BigDecimal("1000.00"), usuario.getSaldoDisponivel());
     }
 
     @Test

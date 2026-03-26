@@ -37,7 +37,7 @@ public class UsuarioService {
 
     public BigDecimal consultarSaldo(Long usuarioId) {
         Usuario usuario = buscarPorId(usuarioId);
-        return usuario.getSaldo();
+        return usuario.getSaldoDisponivel();
     }
 
     public List<Usuario> listarTodos() {

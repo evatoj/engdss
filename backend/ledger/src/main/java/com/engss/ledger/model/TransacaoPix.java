@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transacoes_pix")
+@Table(name = "transacao_pix")
 public class TransacaoPix {
 
     @Id
@@ -15,14 +15,14 @@ public class TransacaoPix {
     @Column(name = "chave_pix_destino", nullable = false)
     private String chavePixDestino;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal valor;
 
     @Column(length = 255)
     private String descricao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private StatusTransacao status;
 
     @Column(name = "data_criacao", nullable = false)

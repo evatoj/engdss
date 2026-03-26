@@ -36,7 +36,7 @@ public class UsuarioController {
         UsuarioResponse response = new UsuarioResponse(
                 usuario.getId(),
                 usuario.getNome(),
-                usuario.getSaldo()
+                usuario.getSaldoDisponivel()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,7 +49,7 @@ public class UsuarioController {
                 .map(usuario -> new UsuarioResponse(
                         usuario.getId(),
                         usuario.getNome(),
-                        usuario.getSaldo()
+                        usuario.getSaldoDisponivel()
                 ))
                 .collect(Collectors.toList());
 
@@ -63,7 +63,7 @@ public class UsuarioController {
         SaldoResponse response = new SaldoResponse(
                 usuario.getId(),
                 usuario.getNome(),
-                usuario.getSaldo()
+                usuario.getSaldoDisponivel()
         );
 
         return ResponseEntity.ok(response);

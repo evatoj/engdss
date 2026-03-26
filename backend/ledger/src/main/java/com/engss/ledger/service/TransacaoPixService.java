@@ -41,7 +41,7 @@ public class TransacaoPixService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));;
 
-        usuario.debitar(valor);
+        usuario.reservarSaldo(valor);
 
         TransacaoPix transacao = new TransacaoPix();
         transacao.setChavePixDestino(chavePixDestino);

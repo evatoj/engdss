@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuario")
 public class Usuario {
 
     @Id
@@ -16,8 +16,11 @@ public class Usuario {
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal saldo;
+    @Column(name = "saldo_disponivel", nullable = false, precision = 15, scale = 2)
+    private BigDecimal saldoDisponivel;
+
+    @Column(name = "saldo_pendente", nullable = false, precision = 15, scale = 2)
+    private BigDecimal saldoPendente;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<TransacaoPix> transacoes = new ArrayList<>();
@@ -25,9 +28,10 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(String nome, BigDecimal saldo) {
+    public Usuario(String nome, BigDecimal saldoDisponivel) {
         this.nome = nome;
-        this.saldo = saldo;
+        this.saldoDisponivel = saldoDisponivel;
+        this.saldoPendente = BigDecimal.ZERO;
     }
 
     public Long getId() {
@@ -38,8 +42,12 @@ public class Usuario {
         return nome;
     }
 
-    public BigDecimal getSaldo() {
-        return saldo;
+    public BigDecimal getSaldoDisponivel() {
+        return saldoDisponivel;
+    }
+
+    public BigDecimal getSaldoPendente() {
+        return saldoPendente;
     }
 
     public List<TransacaoPix> getTransacoes() {
@@ -54,32 +62,62 @@ public class Usuario {
         this.nome = nome;
     }
 
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
+    public void setSaldoDisponivel(BigDecimal saldoDisponivel) {
+        this.saldoDisponivel = saldoDisponivel;
+    }
+
+    public void setSaldoPendente(BigDecimal saldoPendente) {
+        this.saldoPendente = saldoPendente;
     }
 
     public void setTransacoes(List<TransacaoPix> transacoes) {
         this.transacoes = transacoes;
     }
 
-    public void debitar(BigDecimal valor) {
+    public void reservarSaldo(BigDecimal valor) {
         if (valor == null || valor.signum() <= 0) {
-            throw new IllegalArgumentException("O valor para débito deve ser maior que zero.");
+            throw new IllegalArgumentException("O valor deve ser maior que zero.");
         }
 
-        if (this.saldo.compareTo(valor) < 0) {
+        if (this.saldoDisponivel.compareTo(valor) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente.");
         }
 
-        this.saldo = this.saldo.subtract(valor);
+        this.saldoDisponivel = this.saldoDisponivel.subtract(valor);
+        this.saldoPendente = this.saldoPendente.add(valor);
+    }
+
+    public void concluirDebitoPendente(BigDecimal valor) {
+        if (valor == null || valor.signum() <= 0) {
+            throw new IllegalArgumentException("O valor deve ser maior que zero.");
+        }
+
+        if (this.saldoPendente.compareTo(valor) < 0) {
+            throw new IllegalArgumentException("Saldo pendente insuficiente.");
+        }
+
+        this.saldoPendente = this.saldoPendente.subtract(valor);
+    }
+
+    public void estornarSaldoPendente(BigDecimal valor) {
+        if (valor == null || valor.signum() <= 0) {
+            throw new IllegalArgumentException("O valor deve ser maior que zero.");
+        }
+
+        if (this.saldoPendente.compareTo(valor) < 0) {
+            throw new IllegalArgumentException("Saldo pendente insuficiente.");
+        }
+
+        this.saldoPendente = this.saldoPendente.subtract(valor);
+        this.saldoDisponivel = this.saldoDisponivel.add(valor);
     }
 
     public void creditar(BigDecimal valor) {
         if (valor == null || valor.signum() <= 0) {
-            throw new IllegalArgumentException("O valor para crédito deve ser maior que zero.");
+            throw new IllegalArgumentException("O valor deve ser maior que zero.");
         }
 
-        this.saldo = this.saldo.add(valor);
+        this.saldoDisponivel = this.saldoDisponivel.add(valor);
     }
 
     public void adicionarTransacao(TransacaoPix transacao) {

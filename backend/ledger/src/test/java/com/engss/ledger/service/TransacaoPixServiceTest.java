@@ -47,7 +47,7 @@ class TransacaoPixServiceTest {
 
         assertNotNull(transacao.getId());
         assertEquals(StatusTransacao.CONCLUIDA, transacao.getStatus());
-        assertEquals(new BigDecimal("800.00"), usuarioAtualizado.getSaldo());
+        assertEquals(new BigDecimal("800.00"), usuarioAtualizado.getSaldoDisponivel());
     }
 
     @Test

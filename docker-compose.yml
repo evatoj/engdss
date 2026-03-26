@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 
 services:
 
@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      - postgres
 
   mysql:
     build: ./docker/mysql
@@ -32,5 +32,19 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ledger_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgresql/init:/docker-entrypoint-initdb.d
+
 volumes:
   mysql_data:
+  postgres_data:
