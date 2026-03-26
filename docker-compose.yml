@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   frontend:
     build: 
       context: ./frontend/angular-engdss
@@ -19,14 +20,17 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - mysql
 
-  db:
-    image: postgres:15
-    container_name: postgres-db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+  mysql:
+    build: ./docker/mysql
+    container_name: mysql-db
     ports:
-      - "5432:5432"
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
