@@ -1,0 +1,62 @@
+package com.engss.transationService.service;
+
+import com.engss.transationService.exception.RecursoNaoEncontradoException;
+import com.engss.transationService.messaging.PixEventPublisher;
+import com.engss.transationService.model.Usuario;
+import com.engss.transationService.repository.UsuarioRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class UsuarioService {
+
+    private final UsuarioRepository usuarioRepository;
+    private final PixEventPublisher pixEventPublisher;
+
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                          PixEventPublisher pixEventPublisher) {
+        this.usuarioRepository = usuarioRepository;
+        this.pixEventPublisher = pixEventPublisher;
+    }
+
+    @Transactional
+    public Usuario criarUsuario(String nome, BigDecimal saldoInicial) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("O nome do usuário é obrigatório.");
+        }
+        if (saldoInicial == null || saldoInicial.signum() < 0) {
+            throw new IllegalArgumentException("O saldo inicial não pode ser negativo.");
+        }
+
+        Usuario usuario = new Usuario(nome, saldoInicial);
+        Usuario salvo = usuarioRepository.save(usuario);
+
+        // publica crédito inicial no ledger se saldo > 0
+        if (saldoInicial.signum() > 0) {
+            UUID accountId      = UUID.nameUUIDFromBytes(("usuario-" + salvo.getId()).getBytes());
+            UUID idempotencyKey = UUID.randomUUID();
+            UUID correlationId  = UUID.randomUUID();
+            pixEventPublisher.publishCreditoInicial(accountId, idempotencyKey, saldoInicial, correlationId);
+        }
+
+        return salvo;
+    }
+
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
+    }
+
+    public BigDecimal consultarSaldo(Long usuarioId) {
+        Usuario usuario = buscarPorId(usuarioId);
+        return usuario.getSaldoDisponivel();
+    }
+
+    public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
+}
