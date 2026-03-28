@@ -7,9 +7,7 @@ import com.engss.ledgerService.domain.model.*;
 import com.engss.ledgerService.domain.repository.*;
 import com.engss.ledgerService.infraestructure.outbox.OutboxEvent;
 import com.engss.ledgerService.infraestructure.outbox.OutboxEventRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +22,6 @@ public class LedgerCommandService {
     private final LedgerEventRepository ledgerEventRepository;
     private final BalanceViewRepository balanceViewRepository;
     private final OutboxEventRepository outboxEventRepository;
-    private final ObjectMapper objectMapper;
 
     @Transactional
     public void debitPending(DebitCommand cmd) {
@@ -88,11 +85,9 @@ public class LedgerCommandService {
             .orElseGet(() -> new BalanceView(accountId, BigDecimal.ZERO, BigDecimal.ZERO, Instant.now(), null));
     }
 
-    @SneakyThrows
+    // payload simples sem ObjectMapper — evita double serialization
     private void saveOutbox(String eventType, UUID correlationId, String routingKey) {
-        var payload = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
-            put("correlationId", correlationId);
-        }});
+        String payload = "{\"correlationId\":\"" + correlationId + "\"}";
         outboxEventRepository.save(OutboxEvent.of(eventType, payload, routingKey));
     }
 }

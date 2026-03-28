@@ -14,5 +14,5 @@ public interface TransacaoPixRepository extends JpaRepository<TransacaoPix, Long
     List<TransacaoPix> findByUsuarioIdOrderByDataCriacaoDesc(Long usuarioId);
 
     @Query("SELECT t FROM TransacaoPix t WHERE t.correlationId = :correlationId")
-    Optional<TransacaoPix> findByCorrelationId(@Param("correlationId") UUID correlationId);
+    Optional<TransacaoPix> findByCorrelationId(@Param("correlationId") String correlationId);
 }

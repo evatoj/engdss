@@ -1,6 +1,7 @@
 package com.engss.ledgerService.infraestructure.outbox;
 
 import com.engss.ledgerService.infraestructure.config.RabbitMQConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class OutboxPublisherWorker {
 
     private final OutboxEventRepository outboxEventRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
     private static final int BATCH_SIZE = 50;
 
@@ -34,10 +37,12 @@ public class OutboxPublisherWorker {
 
         for (OutboxEvent event : pending) {
             try {
+                // parseia o JSON string para Map antes de publicar — evita double serialization
+                Map<?, ?> payloadMap = objectMapper.readValue(event.getPayload(), Map.class);
                 rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE,
                     event.getRoutingKey(),
-                    event.getPayload()
+                    payloadMap
                 );
                 event.markPublished();
                 outboxEventRepository.save(event);

@@ -1,7 +1,6 @@
 package com.engss.transationService.messaging;
 
 import com.engss.transationService.config.RabbitMQConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -17,63 +16,52 @@ public class PixEventPublisher {
     private static final Logger log = LoggerFactory.getLogger(PixEventPublisher.class);
 
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper objectMapper;
 
-    public PixEventPublisher(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+    public PixEventPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
-        this.objectMapper = objectMapper;
     }
 
     public void publishSaqueIniciado(UUID accountId, UUID idempotencyKey,
                                       BigDecimal amount, UUID correlationId) {
-        send(RabbitMQConfig.RK_SAQUE_INICIADO, Map.of(
-            "accountId",      accountId,
-            "idempotencyKey", idempotencyKey,
+        Map<String, Object> payload = Map.of(
+            "accountId",      accountId.toString(),
+            "idempotencyKey", idempotencyKey.toString(),
             "amount",         amount,
-            "correlationId",  correlationId
-        ));
+            "correlationId",  correlationId.toString()
+        );
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_SAQUE_INICIADO, payload);
         log.info("Publicado SaqueIniciado. correlationId={}", correlationId);
     }
 
     public void publishCreditoInicial(UUID accountId, UUID idempotencyKey,
                                        BigDecimal amount, UUID correlationId) {
-        send(RabbitMQConfig.RK_CREDITO_INICIAL, Map.of(
-            "accountId",      accountId,
-            "idempotencyKey", idempotencyKey,
+        Map<String, Object> payload = Map.of(
+            "accountId",      accountId.toString(),
+            "idempotencyKey", idempotencyKey.toString(),
             "amount",         amount,
-            "correlationId",  correlationId
-        ));
+            "correlationId",  correlationId.toString()
+        );
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_CREDITO_INICIAL, payload);
         log.info("Publicado CreditoInicial. accountId={}", accountId);
     }
 
     public void publishPixConfirmado(UUID accountId, BigDecimal amount, UUID correlationId) {
-        send(RabbitMQConfig.RK_PIX_CONFIRMADO, Map.of(
-            "accountId",     accountId,
+        Map<String, Object> payload = Map.of(
+            "accountId",     accountId.toString(),
             "amount",        amount,
-            "correlationId", correlationId
-        ));
+            "correlationId", correlationId.toString()
+        );
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_PIX_CONFIRMADO, payload);
         log.info("Publicado PixConfirmado. correlationId={}", correlationId);
     }
 
     public void publishPixFalhou(UUID accountId, BigDecimal amount, UUID correlationId) {
-        send(RabbitMQConfig.RK_PIX_FALHOU, Map.of(
-            "accountId",     accountId,
+        Map<String, Object> payload = Map.of(
+            "accountId",     accountId.toString(),
             "amount",        amount,
-            "correlationId", correlationId
-        ));
+            "correlationId", correlationId.toString()
+        );
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_PIX_FALHOU, payload);
         log.info("Publicado PixFalhou. correlationId={}", correlationId);
-    }
-
-    private void send(String routingKey, Map<String, Object> payload) {
-        try {
-            rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                routingKey,
-                objectMapper.writeValueAsString(payload)
-            );
-        } catch (Exception e) {
-            log.error("Erro ao publicar evento. routingKey={}", routingKey, e);
-            throw new RuntimeException(e);
-        }
     }
 }
