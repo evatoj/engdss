@@ -1,34 +1,53 @@
 import { Component } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { FloatLabelModule } from 'primeng/floatlabel';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
-import { PanelModule } from 'primeng/panel';
-import { nova_transacao_form } from '../../../models/nova_transacao';
 
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { CardModule } from 'primeng/card';
+
+import { TransacaoService } from '../../../serviços/transacao-service';
+import { TransacaoResponse } from '../../../models/transacao_response';
 
 @Component({
   selector: 'app-nova-transacao',
-  imports: [PanelModule, ToastModule, InputTextModule, InputNumberModule, ButtonModule, FloatLabelModule, FormsModule],
-  templateUrl: './nova-transacao.html',
-  styleUrl: './nova-transacao.css',
-  providers: [MessageService]
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    InputTextModule,
+    CardModule
+  ],
+  templateUrl: './nova-transacao.html'
 })
-export class NovaTransacao {
+export class NovaTransacaoComponent {
+  usuarioId: number | null = null;
+  chavePixDestino = '';
+  valor: number | null = null;
+  descricao = '';
 
-  form: nova_transacao_form = {
-    chave: null,
-    valor: null,
-    descricao: null
+  resposta: TransacaoResponse | null = null;
+
+  constructor(private transacaoService: TransacaoService) {}
+
+  enviar(): void {
+    if (!this.usuarioId || !this.chavePixDestino.trim() || this.valor === null) {
+      return;
+    }
+
+    this.transacaoService.criarTransacao({
+      usuarioId: this.usuarioId,
+      chavePixDestino: this.chavePixDestino,
+      valor: this.valor,
+      descricao: this.descricao
+    }).subscribe({
+      next: (res) => {
+        this.resposta = res;
+      },
+      error: (err) => {
+        console.error('Erro ao criar transação', err);
+      }
+    });
   }
-
-  constructor(private messageService: MessageService) {}
-  
-  enviar_transacao() {
-    this.messageService.add({ severity: 'success', summary: 'Transação Enviada', detail: `Valor: ${this.form.valor}, Chave: ${this.form.chave}, Descrição: ${this.form.descricao}` });
-  }
-
 }

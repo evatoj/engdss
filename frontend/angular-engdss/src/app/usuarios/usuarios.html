@@ -1,0 +1,94 @@
+<p-card header="Criar usuário">
+  <div class="grid">
+    <div class="col-12 md:col-5">
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="nome"
+        placeholder="Nome do usuário"
+        class="w-full"
+      />
+    </div>
+
+    <div class="col-12 md:col-4">
+      <input
+        pInputText
+        type="number"
+        [(ngModel)]="saldoInicial"
+        placeholder="Saldo inicial"
+        class="w-full"
+      />
+    </div>
+
+    <div class="col-12 md:col-3">
+      <button
+        pButton
+        type="button"
+        label="Criar"
+        class="w-full"
+        (click)="criarUsuario()"
+      ></button>
+    </div>
+  </div>
+</p-card>
+
+<br />
+
+<p-card header="Usuários cadastrados">
+  <p-table [value]="usuarios" [loading]="carregandoUsuarios" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-usuario>
+      <tr>
+        <td>{{ usuario.id }}</td>
+        <td>{{ usuario.nome }}</td>
+        <td>
+          <button
+            pButton
+            type="button"
+            label="Ver detalhes"
+            (click)="selecionarUsuario(usuario)"
+          ></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<br />
+
+<p-card *ngIf="usuarioSelecionado" header="Detalhes do usuário">
+  <p><strong>ID:</strong> {{ usuarioSelecionado.id }}</p>
+  <p><strong>Nome:</strong> {{ usuarioSelecionado.nome }}</p>
+  <p><strong>Saldo:</strong> {{ saldoUsuario ?? 'Carregando...' }}</p>
+
+  <h4>Transações do usuário</h4>
+
+  <p-table [value]="transacoes" [loading]="carregandoDetalhes" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Chave PIX destino</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Descrição</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-transacao>
+      <tr>
+        <td>{{ transacao.id }}</td>
+        <td>{{ transacao.chavePixDestino }}</td>
+        <td>{{ transacao.valor | currency:'BRL' }}</td>
+        <td>{{ transacao.status }}</td>
+        <td>{{ transacao.descricao }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

@@ -1,118 +1,33 @@
-<div class="consulta-container">
-  <div class="consulta-header">
-    <div>
-      <h1>Consultar Transação</h1>
-      <p class="subtitle">Busque uma transação pelo identificador</p>
+<p-card header="Consultar transação por ID">
+  <div class="grid">
+    <div class="col-12 md:col-9">
+      <input
+        pInputText
+        type="number"
+        [(ngModel)]="transacaoId"
+        placeholder="Informe o ID da transação"
+        class="w-full"
+      />
+    </div>
+
+    <div class="col-12 md:col-3">
+      <button
+        pButton
+        type="button"
+        label="Consultar"
+        class="w-full"
+        (click)="consultar()"
+      ></button>
     </div>
   </div>
 
-  <p-card header="Consulta por ID">
-    <div class="form-grid">
-      <div class="field">
-        <label for="idTransacao">ID da transação</label>
-        <input
-          id="idTransacao"
-          type="text"
-          pInputText
-          [(ngModel)]="idTransacao"
-          placeholder="Ex.: tx-001"
-          (keyup.enter)="consultar()"
-        />
-      </div>
-
-      <div class="acoes">
-        <button
-          pButton
-          type="button"
-          label="Consultar"
-          icon="pi pi-search"
-          [loading]="loading"
-          (click)="consultar()">
-        </button>
-
-        <button
-          pButton
-          type="button"
-          label="Limpar"
-          icon="pi pi-times"
-          severity="secondary"
-          [outlined]="true"
-          (click)="limpar()">
-        </button>
-      </div>
-    </div>
-
-    <div class="mensagens" *ngIf="mensagemErro">
-      <p-message severity="warn" [text]="mensagemErro"></p-message>
-    </div>
-  </p-card>
-
-  <p-divider></p-divider>
-
-  <div *ngIf="loading" class="resultado-loading">
-    <p-card header="Resultado da consulta">
-      <p-skeleton height="2rem" styleClass="mb-3"></p-skeleton>
-      <p-skeleton height="2rem" styleClass="mb-3"></p-skeleton>
-      <p-skeleton height="2rem" styleClass="mb-3"></p-skeleton>
-      <p-skeleton height="2rem"></p-skeleton>
-    </p-card>
+  <div class="mt-4" *ngIf="transacao">
+    <p><strong>ID:</strong> {{ transacao.id }}</p>
+    <p><strong>Usuário:</strong> {{ transacao.usuarioId }}</p>
+    <p><strong>Destino PIX:</strong> {{ transacao.chavePixDestino }}</p>
+    <p><strong>Valor:</strong> {{ transacao.valor | currency:'BRL' }}</p>
+    <p><strong>Status:</strong> {{ transacao.status }}</p>
+    <p><strong>Descrição:</strong> {{ transacao.descricao }}</p>
+    <p><strong>Data:</strong> {{ transacao.dataCriacao }}</p>
   </div>
-
-  <div *ngIf="!loading && transacao">
-    <p-card header="Resultado da consulta">
-      <div class="resultado-grid">
-        <div class="item">
-          <span class="label">ID</span>
-          <strong>{{ transacao.id }}</strong>
-        </div>
-
-        <div class="item">
-          <span class="label">Chave PIX</span>
-          <strong>{{ transacao.chavePix }}</strong>
-        </div>
-
-        <div class="item">
-          <span class="label">Valor</span>
-          <strong>{{ transacao.valor | currency:'BRL' }}</strong>
-        </div>
-
-        <div class="item">
-          <span class="label">Status</span>
-          <p-tag
-            [value]="getStatusLabel(transacao.status)"
-            [severity]="getSeverity(transacao.status)">
-          </p-tag>
-        </div>
-
-        <div class="item">
-          <span class="label">Descrição</span>
-          <strong>{{ transacao.descricao || 'Não informada' }}</strong>
-        </div>
-
-        <div class="item">
-          <span class="label">Criada em</span>
-          <strong>{{ transacao.criadaEm | date:'dd/MM/yyyy HH:mm' }}</strong>
-        </div>
-
-        <div class="item" *ngIf="transacao.atualizadaEm">
-          <span class="label">Atualizada em</span>
-          <strong>{{ transacao.atualizadaEm | date:'dd/MM/yyyy HH:mm' }}</strong>
-        </div>
-
-        <div class="item" *ngIf="transacao.protocolo">
-          <span class="label">Protocolo</span>
-          <strong>{{ transacao.protocolo }}</strong>
-        </div>
-
-        <div class="item full-width" *ngIf="transacao.mensagem">
-          <span class="label">Mensagem</span>
-          <strong>{{ transacao.mensagem }}</strong>
-        </div>
-      </div>
-    </p-card>
-  </div>
-
-  <div *ngIf="!loading && pesquisou && !transacao && !mensagemErro">
-    <p-message severity="info" text="Nenhum resultado encontrado."></p-message>
-  </div>
-</div>
+</p-card>

@@ -1,35 +1,57 @@
-<p-toast></p-toast>
-<div class="flex justify-content-center h-screen align-items-center">
-  <p-panel class="text-center surface-200">
-    <ng-template pTemplate="header">
-      <div class="justify-content-center w-full">
-        <h1 class="w-full">ENVIAR PIX</h1>
-      </div>
-    </ng-template>
-    <p-floatlabel variant="in" class="w-full">
-      <input id="chave" type="text" pInputText [(ngModel)]="form.chave" class="w-full mb-2" />
-      <label for="chave" class="pl-2">Chave PIX</label>
-    </p-floatlabel>
-    <p-floatlabel variant="in" class="w-full">
-      <p-inputnumber
-        inputId="valor"
-        [(ngModel)]="form.valor"
-        class="w-full mb-2"
-        mode="currency"
-        currency="BRL"
-      />
-      <label for="valor" class="pl-2">Valor</label>
-    </p-floatlabel>
-    <p-floatlabel variant="in" class="w-full">
+<p-card header="Nova transação PIX">
+  <div class="grid">
+    <div class="col-12 md:col-3">
       <input
-        id="descricao"
-        type="text"
         pInputText
-        [(ngModel)]="form.descricao"
-        class="w-full mb-2"
+        type="number"
+        [(ngModel)]="usuarioId"
+        placeholder="ID do usuário"
+        class="w-full"
       />
-      <label for="descricao" class="pl-2">Descrição</label>
-    </p-floatlabel>
-    <button pButton label="Enviar" class="w-full mt-2" (click)="enviar_transacao()"></button>
-  </p-panel>
-</div>
+    </div>
+
+    <div class="col-12 md:col-4">
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="chavePixDestino"
+        placeholder="Chave PIX destino"
+        class="w-full"
+      />
+    </div>
+
+    <div class="col-12 md:col-2">
+      <input
+        pInputText
+        type="number"
+        [(ngModel)]="valor"
+        placeholder="Valor"
+        class="w-full"
+      />
+    </div>
+
+    <div class="col-12 md:col-3">
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="descricao"
+        placeholder="Descrição"
+        class="w-full"
+      />
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button
+      pButton
+      type="button"
+      label="Enviar transação"
+      (click)="enviar()"
+    ></button>
+  </div>
+
+  <div class="mt-4" *ngIf="resposta">
+    <h4>Transação criada</h4>
+    <pre>{{ resposta | json }}</pre>
+  </div>
+</p-card>
