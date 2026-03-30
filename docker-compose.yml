@@ -10,11 +10,12 @@ services:
       - "4200:4200"
     depends_on:
       - transaction-service
+
  # ── Transaction Service ───────────────────────────────
   transaction-service:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.backend
+      context: ./backend/transaction-service
+      dockerfile: Dockerfile
     container_name: transaction-service
     ports:
       - "8080:8080"
@@ -35,8 +36,8 @@ services:
   # ── Ledger Service ────────────────────────────────────
   ledger-service:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.ledger
+      context: ./backend/ledger-service
+      dockerfile: Dockerfile
     container_name: ledger-service
     ports:
       - "8082:8082"
@@ -48,9 +49,9 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
-      LEDGER_QUEUE_SAQUE-INICIADO: ledger.saque.iniciado
-      LEDGER_QUEUE_PIX-CONFIRMADO: ledger.pix.confirmado
-      LEDGER_QUEUE_PIX-FALHOU: ledger.pix.falhou
+      LEDGER_QUEUE_SAQUE_INICIADO: ledger.saque.iniciado
+      LEDGER_QUEUE_PIX_CONFIRMADO: ledger.pix.confirmado
+      LEDGER_QUEUE_PIX_FALHOU: ledger.pix.falhou
     depends_on:
       postgres:
         condition: service_healthy
