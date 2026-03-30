@@ -1,36 +1,100 @@
-version: '3.8'
-
 services:
 
+  # ── Frontend ──────────────────────────────────────────
   frontend:
-    build: 
+    build:
       context: ./frontend/angular-engdss
       dockerfile: ../Dockerfile.frontend
     container_name: angular-app
     ports:
       - "4200:4200"
     depends_on:
-      - backend
+      - transaction-service
 
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile.backend
-    container_name: spring-app
+ # ── Transaction Service ───────────────────────────────
+  transaction-service:
+    build:
+      context: ./backend/transaction-service
+      dockerfile: Dockerfile
+    container_name: transaction-service
     ports:
       - "8080:8080"
-    depends_on:
-      - mysql
-
-  mysql:
-    build: ./docker/mysql
-    container_name: mysql-db
-    ports:
-      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pagamento?currentSchema=transaction
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ── Ledger Service ────────────────────────────────────
+  ledger-service:
+    build:
+      context: ./backend/ledger-service
+      dockerfile: Dockerfile
+    container_name: ledger-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pagamento?currentSchema=ledger
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      LEDGER_QUEUE_SAQUE_INICIADO: ledger.saque.iniciado
+      LEDGER_QUEUE_PIX_CONFIRMADO: ledger.pix.confirmado
+      LEDGER_QUEUE_PIX_FALHOU: ledger.pix.falhou
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ── PostgreSQL ────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pagamento
+    ports:
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgresql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d pagamento"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── RabbitMQ ──────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI → http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mysql_data:
+  postgres_data:
+  rabbitmq_data:
