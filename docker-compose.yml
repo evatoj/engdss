@@ -19,18 +19,20 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pagamento?currentSchema=transaction
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/pagamento?currentSchema=transaction
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: host.docker.internal
       SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_RABBITMQ_USERNAME: appuser
+      SPRING_RABBITMQ_PASSWORD: appuser
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # ── Ledger Service ────────────────────────────────────
   ledger-service:
@@ -41,13 +43,13 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pagamento?currentSchema=ledger
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/pagamento?currentSchema=ledger
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: host.docker.internal
       SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_RABBITMQ_USERNAME: appuser
+      SPRING_RABBITMQ_PASSWORD: appuser
       LEDGER_QUEUE_SAQUE-INICIADO: ledger.saque.iniciado
       LEDGER_QUEUE_PIX-CONFIRMADO: ledger.pix.confirmado
       LEDGER_QUEUE_PIX-FALHOU: ledger.pix.falhou
@@ -56,6 +58,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # ── PostgreSQL ────────────────────────────────────────
   postgres:
@@ -84,8 +88,8 @@ services:
       - "5672:5672"   # AMQP
       - "15672:15672" # Management UI → http://localhost:15672
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: appuser
+      RABBITMQ_DEFAULT_PASS: appuser
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
