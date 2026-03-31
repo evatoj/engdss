@@ -16,7 +16,7 @@ export class App {
     ngOnInit() {
         this.items = [
             {
-                label: 'Home',
+                label: 'Usuário',
                 icon: 'pi pi-home',
                 routerLink: '/'
             },
@@ -29,11 +29,6 @@ export class App {
                 label: 'Consulta Transação',
                 icon: 'pi pi-list',
                 routerLink: '/consulta-transacao',
-            },
-            {
-                label: 'Histórico',
-                icon: 'pi pi-envelope',
-                routerLink: '/historico'
             }
         ]
     }
