@@ -1,9 +1,7 @@
 package com.engss.transaction.infraestructure.messaging;
 
 import com.engss.transaction.domain.model.StatusTransacao;
-import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
-import com.engss.transaction.domain.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -18,12 +16,9 @@ public class LedgerEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(LedgerEventConsumer.class);
 
     private final TransacaoPixRepository transacaoPixRepository;
-    private final UsuarioRepository usuarioRepository;
 
-    public LedgerEventConsumer(TransacaoPixRepository transacaoPixRepository,
-                                UsuarioRepository usuarioRepository) {
+    public LedgerEventConsumer(TransacaoPixRepository transacaoPixRepository) {
         this.transacaoPixRepository = transacaoPixRepository;
-        this.usuarioRepository = usuarioRepository;
     }
 
     @RabbitListener(queues = "transaction.ledger.debited")
@@ -33,14 +28,10 @@ public class LedgerEventConsumer {
             String correlationId = payload.get("correlationId").toString();
 
             transacaoPixRepository.findByCorrelationId(correlationId).ifPresent(transacao -> {
-                transacao.setStatus(StatusTransacao.CONCLUIDA);
+                transacao.setStatus(StatusTransacao.EM_PROCESSAMENTO);
                 transacaoPixRepository.save(transacao);
 
-                Usuario usuario = transacao.getUsuario();
-                usuario.concluirDebitoPendente(transacao.getValor());
-                usuarioRepository.save(usuario);
-
-                log.info("Transacao CONCLUIDA. correlationId={}", correlationId);
+                log.info("Transacao EM_PROCESSAMENTO. correlationId={}", correlationId);
             });
         } catch (Exception e) {
             log.error("Erro ao processar LedgerDebited. payload={}", payload, e);
@@ -53,9 +44,16 @@ public class LedgerEventConsumer {
     public void onLedgerDebitConfirmed(Map<String, Object> payload) {
         try {
             String correlationId = payload.get("correlationId").toString();
-            log.info("LedgerDebitConfirmed recebido. correlationId={}", correlationId);
+
+            transacaoPixRepository.findByCorrelationId(correlationId).ifPresent(transacao -> {
+                transacao.setStatus(StatusTransacao.CONCLUIDA);
+                transacaoPixRepository.save(transacao);
+
+                log.info("Transacao CONCLUIDA. correlationId={}", correlationId);
+            });
         } catch (Exception e) {
             log.error("Erro ao processar LedgerDebitConfirmed. payload={}", payload, e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -69,11 +67,7 @@ public class LedgerEventConsumer {
                 transacao.setStatus(StatusTransacao.FALHA);
                 transacaoPixRepository.save(transacao);
 
-                Usuario usuario = transacao.getUsuario();
-                usuario.estornarSaldoPendente(transacao.getValor());
-                usuarioRepository.save(usuario);
-
-                log.info("Transacao REVERTIDA. correlationId={}", correlationId);
+                log.info("Transacao FALHA. correlationId={}", correlationId);
             });
         } catch (Exception e) {
             log.error("Erro ao processar LedgerReversed. payload={}", payload, e);

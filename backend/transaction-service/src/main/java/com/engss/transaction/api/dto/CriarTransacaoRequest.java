@@ -5,51 +5,48 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class CriarTransacaoRequest {
 
-    @NotNull(message = "O id do usuário é obrigatório.")
-    private Long usuarioId;
+    @NotNull
+    private UUID usuarioId;
 
-    @NotBlank(message = "A chave PIX de destino é obrigatória.")
+    @NotBlank
     private String chavePixDestino;
 
-    @NotNull(message = "O valor é obrigatório.")
-    @DecimalMin(value = "0.01", inclusive = true, message = "O valor da transação deve ser maior que zero.")
+    @NotNull
+    @DecimalMin(value = "0.01")
     private BigDecimal valor;
 
-    @NotBlank(message = "A descrição é obrigatória.")
     private String descricao;
 
-    public CriarTransacaoRequest() {
+    public UUID getUsuarioId() {
+        return usuarioId;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
+    public void setUsuarioId(UUID usuarioId) {
+        this.usuarioId = usuarioId;
     }
 
     public String getChavePixDestino() {
         return chavePixDestino;
     }
 
-    public BigDecimal getValor() {
-        return valor;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
     public void setChavePixDestino(String chavePixDestino) {
         this.chavePixDestino = chavePixDestino;
     }
 
+    public BigDecimal getValor() {
+        return valor;
+    }
+
     public void setValor(BigDecimal valor) {
         this.valor = valor;
+    }
+
+    public String getDescricao() {
+        return descricao;
     }
 
     public void setDescricao(String descricao) {

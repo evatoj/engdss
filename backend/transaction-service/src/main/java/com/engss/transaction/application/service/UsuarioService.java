@@ -1,9 +1,9 @@
 package com.engss.transaction.application.service;
 
 import com.engss.transaction.application.exception.RecursoNaoEncontradoException;
-import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
 import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.UsuarioRepository;
+import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,28 +32,28 @@ public class UsuarioService {
             throw new IllegalArgumentException("O saldo inicial não pode ser negativo.");
         }
 
-        Usuario usuario = new Usuario(nome, saldoInicial);
+        Usuario usuario = new Usuario(nome);
         Usuario salvo = usuarioRepository.save(usuario);
 
-        // publica crédito inicial no ledger se saldo > 0
         if (saldoInicial.signum() > 0) {
-            UUID accountId      = UUID.nameUUIDFromBytes(("usuario-" + salvo.getId()).getBytes());
+            UUID accountId = salvo.getId();
             UUID idempotencyKey = UUID.randomUUID();
-            UUID correlationId  = UUID.randomUUID();
-            pixEventPublisher.publishCreditoInicial(accountId, idempotencyKey, saldoInicial, correlationId);
+            UUID correlationId = UUID.randomUUID();
+
+            pixEventPublisher.publishCreditoInicial(
+                    accountId,
+                    idempotencyKey,
+                    saldoInicial,
+                    correlationId
+            );
         }
 
         return salvo;
     }
 
-    public Usuario buscarPorId(Long id) {
+    public Usuario buscarPorId(UUID id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
-    }
-
-    public BigDecimal consultarSaldo(Long usuarioId) {
-        Usuario usuario = buscarPorId(usuarioId);
-        return usuario.getSaldoDisponivel();
     }
 
     public List<Usuario> listarTodos() {

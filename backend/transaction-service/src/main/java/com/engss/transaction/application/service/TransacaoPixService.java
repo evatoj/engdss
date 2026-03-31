@@ -1,12 +1,12 @@
 package com.engss.transaction.application.service;
 
 import com.engss.transaction.application.exception.RecursoNaoEncontradoException;
-import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
 import com.engss.transaction.domain.model.StatusTransacao;
 import com.engss.transaction.domain.model.TransacaoPix;
 import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
 import com.engss.transaction.domain.repository.UsuarioRepository;
+import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,21 +22,23 @@ public class TransacaoPixService {
     private final PixEventPublisher pixEventPublisher;
 
     public TransacaoPixService(TransacaoPixRepository transacaoPixRepository,
-                                UsuarioRepository usuarioRepository,
-                                PixEventPublisher pixEventPublisher) {
+                               UsuarioRepository usuarioRepository,
+                               PixEventPublisher pixEventPublisher) {
         this.transacaoPixRepository = transacaoPixRepository;
         this.usuarioRepository = usuarioRepository;
         this.pixEventPublisher = pixEventPublisher;
     }
 
     @Transactional
-    public TransacaoPix criarTransacao(Long usuarioId,
+    public TransacaoPix criarTransacao(UUID usuarioId,
                                        String chavePixDestino,
                                        BigDecimal valor,
-                                       String descricao) {
+                                       String descricao,
+                                       String idempotencyKeyHeader) {
         if (chavePixDestino == null || chavePixDestino.isBlank()) {
             throw new IllegalArgumentException("A chave PIX de destino é obrigatória.");
         }
+
         if (valor == null || valor.signum() <= 0) {
             throw new IllegalArgumentException("O valor da transação deve ser maior que zero.");
         }
@@ -44,16 +46,16 @@ public class TransacaoPixService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
-        // reserva o saldo (disponível → pendente)
-        usuario.reservarSaldo(valor);
-        usuarioRepository.save(usuario);
+        UUID idempotencyKey = parseOrGenerateIdempotencyKey(idempotencyKeyHeader);
 
-        // gera IDs para rastreamento
-        UUID correlationId  = UUID.randomUUID();
-        UUID idempotencyKey = UUID.randomUUID();
-        UUID accountId      = UUID.nameUUIDFromBytes(("usuario-" + usuarioId).getBytes());
+        var transacaoExistente = transacaoPixRepository.findByIdempotencyKey(idempotencyKey.toString());
+        if (transacaoExistente.isPresent()) {
+            return transacaoExistente.get();
+        }
 
-        // salva transação como PENDENTE
+        UUID correlationId = UUID.randomUUID();
+        UUID accountId = usuario.getId();
+
         TransacaoPix transacao = new TransacaoPix();
         transacao.setChavePixDestino(chavePixDestino);
         transacao.setValor(valor);
@@ -61,20 +63,21 @@ public class TransacaoPixService {
         transacao.setUsuario(usuario);
         transacao.setStatus(StatusTransacao.PENDENTE);
         transacao.setCorrelationId(correlationId);
+        transacao.setIdempotencyKey(idempotencyKey);
+
         TransacaoPix salva = transacaoPixRepository.save(transacao);
 
-        // publica evento para o ledger processar
         pixEventPublisher.publishSaqueIniciado(accountId, idempotencyKey, valor, correlationId);
 
         return salva;
     }
 
-    public TransacaoPix buscarPorId(Long id) {
+    public TransacaoPix buscarPorId(UUID id) {
         return transacaoPixRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Transação não encontrada."));
     }
 
-    public List<TransacaoPix> listarPorUsuario(Long usuarioId) {
+    public List<TransacaoPix> listarPorUsuario(UUID usuarioId) {
         if (!usuarioRepository.existsById(usuarioId)) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado.");
         }
@@ -83,5 +86,17 @@ public class TransacaoPixService {
 
     public List<TransacaoPix> listarTodas() {
         return transacaoPixRepository.findAll();
+    }
+
+    private UUID parseOrGenerateIdempotencyKey(String header) {
+        if (header == null || header.isBlank()) {
+            return UUID.randomUUID();
+        }
+
+        try {
+            return UUID.fromString(header);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Idempotency-Key inválida. Use um UUID válido.");
+        }
     }
 }

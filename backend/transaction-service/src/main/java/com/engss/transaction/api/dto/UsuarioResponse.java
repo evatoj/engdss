@@ -1,23 +1,21 @@
 package com.engss.transaction.api.dto;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class UsuarioResponse {
 
-    private Long id;
+    private UUID id;
     private String nome;
     private BigDecimal saldo;
 
-    public UsuarioResponse() {
-    }
-
-    public UsuarioResponse(Long id, String nome, BigDecimal saldo) {
+    public UsuarioResponse(UUID id, String nome, BigDecimal saldo) {
         this.id = id;
         this.nome = nome;
         this.saldo = saldo;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -27,17 +25,5 @@ public class UsuarioResponse {
 
     public BigDecimal getSaldo() {
         return saldo;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
     }
 }

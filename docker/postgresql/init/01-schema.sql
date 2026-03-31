@@ -4,30 +4,30 @@
 CREATE SCHEMA IF NOT EXISTS transaction;
 CREATE SCHEMA IF NOT EXISTS ledger;
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- =========================================
 -- SCHEMA: transaction
 -- =========================================
 
 CREATE TABLE IF NOT EXISTS transaction.usuario (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    saldo_disponivel NUMERIC(15,2) NOT NULL DEFAULT 0.00,
-    saldo_pendente NUMERIC(15,2) NOT NULL DEFAULT 0.00
+    id UUID PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_usuario_nome
     ON transaction.usuario(nome);
 
 CREATE TABLE IF NOT EXISTS transaction.transacao_pix (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    usuario_id UUID NOT NULL,
     chave_pix_destino VARCHAR(255) NOT NULL,
     valor NUMERIC(15,2) NOT NULL,
     descricao VARCHAR(255),
     tipo_operacao VARCHAR(30) NOT NULL DEFAULT 'SAQUE',
     status VARCHAR(30) NOT NULL,
-    chave_idempotencia VARCHAR(100) UNIQUE,
-    referencia_externa VARCHAR(100),
+    chave_idempotencia VARCHAR(100) NOT NULL UNIQUE,
+    referencia_externa VARCHAR(100) UNIQUE,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_transacao_pix_referencia_externa
 
 CREATE TABLE IF NOT EXISTS transaction.evento_outbox (
     id BIGSERIAL PRIMARY KEY,
-    transacao_pix_id BIGINT NULL,
+    transacao_pix_id UUID NULL,
     tipo_evento VARCHAR(100) NOT NULL,
     payload JSONB NOT NULL,
     routing_key VARCHAR(100) NOT NULL,
@@ -79,7 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_evento_outbox_transacao_pix_id
 CREATE TABLE IF NOT EXISTS transaction.idempotencia (
     id BIGSERIAL PRIMARY KEY,
     chave VARCHAR(100) NOT NULL UNIQUE,
-    transacao_pix_id BIGINT NULL,
+    transacao_pix_id UUID NULL,
     requisicao_hash VARCHAR(255),
     resposta JSONB,
     status VARCHAR(30) NOT NULL DEFAULT 'PROCESSANDO',
@@ -119,6 +119,9 @@ CREATE INDEX IF NOT EXISTS idx_ledger_events_correlation_id
 
 CREATE INDEX IF NOT EXISTS idx_ledger_events_idempotency_key
     ON ledger.ledger_events(idempotency_key);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_ledger_events_correlation_type
+    ON ledger.ledger_events(correlation_id, type);
 
 CREATE TABLE IF NOT EXISTS ledger.balance_view (
     account_id UUID PRIMARY KEY,

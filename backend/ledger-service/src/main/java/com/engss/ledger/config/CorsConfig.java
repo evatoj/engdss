@@ -1,4 +1,4 @@
-package main.java.com.engss.ledger.config;
+package com.engss.ledger.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

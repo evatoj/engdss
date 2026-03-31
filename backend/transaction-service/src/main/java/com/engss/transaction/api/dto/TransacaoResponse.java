@@ -4,22 +4,20 @@ import com.engss.transaction.domain.model.StatusTransacao;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class TransacaoResponse {
 
-    private Long id;
-    private Long usuarioId;
+    private UUID id;
+    private UUID usuarioId;
     private String chavePixDestino;
     private BigDecimal valor;
     private String descricao;
     private StatusTransacao status;
     private LocalDateTime dataCriacao;
 
-    public TransacaoResponse() {
-    }
-
-    public TransacaoResponse(Long id,
-                             Long usuarioId,
+    public TransacaoResponse(UUID id,
+                             UUID usuarioId,
                              String chavePixDestino,
                              BigDecimal valor,
                              String descricao,
@@ -34,11 +32,11 @@ public class TransacaoResponse {
         this.dataCriacao = dataCriacao;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public Long getUsuarioId() {
+    public UUID getUsuarioId() {
         return usuarioId;
     }
 
@@ -60,33 +58,5 @@ public class TransacaoResponse {
 
     public LocalDateTime getDataCriacao() {
         return dataCriacao;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public void setChavePixDestino(String chavePixDestino) {
-        this.chavePixDestino = chavePixDestino;
-    }
-
-    public void setValor(BigDecimal valor) {
-        this.valor = valor;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public void setStatus(StatusTransacao status) {
-        this.status = status;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
     }
 }

@@ -1,5 +1,6 @@
 package com.engss.ledger.infraestructure.messaging;
 
+import com.engss.ledger.application.command.CreditCommand;
 import com.engss.ledger.application.command.DebitCommand;
 import com.engss.ledger.application.command.ReversalCommand;
 import com.engss.ledger.application.service.LedgerCommandService;
@@ -25,10 +26,10 @@ public class LedgerEventConsumer {
     public void onSaqueIniciado(Map<String, Object> payload) {
         try {
             var cmd = new DebitCommand(
-                UUID.fromString(payload.get("accountId").toString()),
-                UUID.fromString(payload.get("idempotencyKey").toString()),
-                new BigDecimal(payload.get("amount").toString()),
-                UUID.fromString(payload.get("correlationId").toString())
+                    UUID.fromString(payload.get("accountId").toString()),
+                    UUID.fromString(payload.get("idempotencyKey").toString()),
+                    new BigDecimal(payload.get("amount").toString()),
+                    UUID.fromString(payload.get("correlationId").toString())
             );
             ledgerCommandService.debitPending(cmd);
             log.info("DEBIT_PENDING aplicado. correlationId={}", cmd.correlationId());
@@ -42,8 +43,9 @@ public class LedgerEventConsumer {
     public void onPixConfirmado(Map<String, Object> payload) {
         try {
             var correlationId = UUID.fromString(payload.get("correlationId").toString());
-            var accountId     = UUID.fromString(payload.get("accountId").toString());
-            var amount        = new BigDecimal(payload.get("amount").toString());
+            var accountId = UUID.fromString(payload.get("accountId").toString());
+            var amount = new BigDecimal(payload.get("amount").toString());
+
             ledgerCommandService.confirmDebit(correlationId, accountId, amount);
             log.info("DEBIT_CONFIRMED aplicado. correlationId={}", correlationId);
         } catch (Exception e) {
@@ -56,8 +58,8 @@ public class LedgerEventConsumer {
     public void onPixFalhou(Map<String, Object> payload) {
         try {
             var cmd = new ReversalCommand(
-                UUID.fromString(payload.get("accountId").toString()),
-                UUID.fromString(payload.get("correlationId").toString())
+                    UUID.fromString(payload.get("accountId").toString()),
+                    UUID.fromString(payload.get("correlationId").toString())
             );
             ledgerCommandService.reverse(cmd);
             log.info("REVERSAL aplicado. correlationId={}", cmd.correlationId());
@@ -70,14 +72,15 @@ public class LedgerEventConsumer {
     @RabbitListener(queues = "${ledger.queue.credito-inicial}")
     public void onCreditoInicial(Map<String, Object> payload) {
         try {
-            var accountId      = UUID.fromString(payload.get("accountId").toString());
-            var idempotencyKey = UUID.fromString(payload.get("idempotencyKey").toString());
-            var amount         = new BigDecimal(payload.get("amount").toString());
-            var correlationId  = UUID.fromString(payload.get("correlationId").toString());
+            var cmd = new CreditCommand(
+                    UUID.fromString(payload.get("accountId").toString()),
+                    UUID.fromString(payload.get("idempotencyKey").toString()),
+                    new BigDecimal(payload.get("amount").toString()),
+                    UUID.fromString(payload.get("correlationId").toString())
+            );
 
-            var cmd = new DebitCommand(accountId, idempotencyKey, amount, correlationId);
             ledgerCommandService.creditInitial(cmd);
-            log.info("CREDIT_INITIAL aplicado. accountId={}", accountId);
+            log.info("CREDIT_INITIAL aplicado. accountId={}", cmd.accountId());
         } catch (Exception e) {
             log.error("Erro ao processar CreditoInicial. payload={}", payload, e);
             throw new RuntimeException(e);
