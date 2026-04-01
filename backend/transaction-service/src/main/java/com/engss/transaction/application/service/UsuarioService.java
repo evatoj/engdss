@@ -3,7 +3,8 @@ package com.engss.transaction.application.service;
 import com.engss.transaction.application.exception.RecursoNaoEncontradoException;
 import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.UsuarioRepository;
-import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
+//import com.engss.transaction.infraestructure.messaging.EventoOutboxService;
+import com.engss.transaction.application.service.EventoOutboxService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +16,12 @@ import java.util.UUID;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final PixEventPublisher pixEventPublisher;
-
+    private final EventoOutboxService eventoOutboxService;
+    
     public UsuarioService(UsuarioRepository usuarioRepository,
-                          PixEventPublisher pixEventPublisher) {
+                          EventoOutboxService pixEventPublisher) {
         this.usuarioRepository = usuarioRepository;
-        this.pixEventPublisher = pixEventPublisher;
+        this.eventoOutboxService = pixEventPublisher;
     }
 
     @Transactional
@@ -40,7 +41,7 @@ public class UsuarioService {
             UUID idempotencyKey = UUID.randomUUID();
             UUID correlationId = UUID.randomUUID();
 
-            pixEventPublisher.publishCreditoInicial(
+            eventoOutboxService.registrarCreditoInicial(
                     accountId,
                     idempotencyKey,
                     saldoInicial,
