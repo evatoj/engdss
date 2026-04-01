@@ -85,4 +85,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
     }
+
+
+    @ExceptionHandler(IdempotenciaEmProcessamentoException.class)
+    public ResponseEntity<Map<String, Object>> handleIdempotenciaEmProcessamento(IdempotenciaEmProcessamentoException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", 409);
+        body.put("erro", "Conflito de idempotência");
+        body.put("mensagem", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
 }

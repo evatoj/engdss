@@ -6,8 +6,6 @@ import com.engss.transaction.domain.model.TransacaoPix;
 import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
 import com.engss.transaction.domain.repository.UsuarioRepository;
-//import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
-import com.engss.transaction.application.service.EventoOutboxService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +19,16 @@ public class TransacaoPixService {
     private final TransacaoPixRepository transacaoPixRepository;
     private final UsuarioRepository usuarioRepository;
     private final EventoOutboxService eventoOutboxService;
+    private final IdempotenciaService idempotenciaService;
 
     public TransacaoPixService(TransacaoPixRepository transacaoPixRepository,
                                UsuarioRepository usuarioRepository,
-                               EventoOutboxService pixEventPublisher) {
+                               EventoOutboxService eventoOutboxService,
+                               IdempotenciaService idempotenciaService) {
         this.transacaoPixRepository = transacaoPixRepository;
         this.usuarioRepository = usuarioRepository;
-        this.eventoOutboxService = pixEventPublisher;
+        this.eventoOutboxService = eventoOutboxService;
+        this.idempotenciaService = idempotenciaService;
     }
 
     @Transactional
@@ -44,14 +45,20 @@ public class TransacaoPixService {
             throw new IllegalArgumentException("O valor da transação deve ser maior que zero.");
         }
 
+        if (idempotencyKeyHeader == null || idempotencyKeyHeader.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key é obrigatória.");
+        }
+
+        UUID.fromString(idempotencyKeyHeader);
+
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
-        UUID idempotencyKey = parseOrGenerateIdempotencyKey(idempotencyKeyHeader);
+        String payloadCanonico = usuarioId + "|" + chavePixDestino + "|" + valor.toPlainString() + "|" + (descricao == null ? "" : descricao);
 
-        var transacaoExistente = transacaoPixRepository.findByIdempotencyKey(idempotencyKey.toString());
-        if (transacaoExistente.isPresent()) {
-            return transacaoExistente.get();
+        TransacaoPix existente = idempotenciaService.verificarOuIniciar(idempotencyKeyHeader, payloadCanonico);
+        if (existente != null) {
+            return existente;
         }
 
         UUID correlationId = UUID.randomUUID();
@@ -64,17 +71,20 @@ public class TransacaoPixService {
         transacao.setUsuario(usuario);
         transacao.setStatus(StatusTransacao.PENDENTE);
         transacao.setCorrelationId(correlationId);
-        transacao.setIdempotencyKey(idempotencyKey);
+        transacao.setIdempotencyKey(UUID.fromString(idempotencyKeyHeader));
 
         TransacaoPix salva = transacaoPixRepository.save(transacao);
 
         eventoOutboxService.registrarSaqueIniciado(
-            salva.getId(),
-            accountId,
-            idempotencyKey,
-            valor,
-            correlationId
+                salva.getId(),
+                accountId,
+                UUID.fromString(idempotencyKeyHeader),
+                valor,
+                correlationId
         );
+
+        idempotenciaService.concluir(idempotencyKeyHeader, salva.getId());
+
         return salva;
     }
 
@@ -92,17 +102,5 @@ public class TransacaoPixService {
 
     public List<TransacaoPix> listarTodas() {
         return transacaoPixRepository.findAll();
-    }
-
-    private UUID parseOrGenerateIdempotencyKey(String header) {
-        if (header == null || header.isBlank()) {
-            return UUID.randomUUID();
-        }
-
-        try {
-            return UUID.fromString(header);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Idempotency-Key inválida. Use um UUID válido.");
-        }
     }
 }
