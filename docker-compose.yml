@@ -10,6 +10,8 @@ services:
       - "4200:4200"
     depends_on:
       - transaction-service
+    networks:
+      - observability-net
 
  # ── Transaction Service ───────────────────────────────
   transaction-service:
@@ -27,11 +29,20 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
+      OTEL_SERVICE_NAME: transaction-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_RESOURCE_ATTRIBUTES: service.name=transaction-service,deployment.environment=dev
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    networks:
+      - observability-net
 
   # ── Ledger Service ────────────────────────────────────
   ledger-service:
@@ -52,11 +63,20 @@ services:
       LEDGER_QUEUE_SAQUE_INICIADO: ledger.saque.iniciado
       LEDGER_QUEUE_PIX_CONFIRMADO: ledger.pix.confirmado
       LEDGER_QUEUE_PIX_FALHOU: ledger.pix.falhou
+      OTEL_SERVICE_NAME: ledger-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_RESOURCE_ATTRIBUTES: service.name=ledger-service,deployment.environment=dev
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    networks:
+      - observability-net
 
   # ── PostgreSQL ────────────────────────────────────────
   postgres:
@@ -76,6 +96,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - observability-net
 
   # ── RabbitMQ ──────────────────────────────────────────
   rabbitmq:
@@ -94,7 +116,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - observability-net
 
 volumes:
   postgres_data:
   rabbitmq_data:
+
+networks:
+  observability-net:
+    name: observability-net
+    driver: bridge
