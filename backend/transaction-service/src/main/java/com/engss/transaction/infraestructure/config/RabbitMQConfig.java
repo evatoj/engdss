@@ -1,80 +1,113 @@
 package com.engss.transaction.infraestructure.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String EXCHANGE = "ledger.exchange";
+    @Value("${app.rabbit.exchange}")
+    private String exchangeName;
 
-    // Routing keys que o transaction-service publica
-    public static final String RK_SAQUE_INICIADO  = "ledger.saque.iniciado";
-    public static final String RK_PIX_CONFIRMADO  = "ledger.pix.confirmado";
-    public static final String RK_PIX_FALHOU      = "ledger.pix.falhou";
-    public static final String RK_CREDITO_INICIAL = "ledger.credito.inicial";
+    @Value("${app.rabbit.queue.ledger-debited}")
+    private String queueLedgerDebited;
 
-    // Routing keys que o transaction-service consome (vindas do ledger)
-    public static final String RK_LEDGER_DEBITED          = "ledger.debited";
-    public static final String RK_LEDGER_DEBIT_CONFIRMED  = "ledger.debit.confirmed";
-    public static final String RK_LEDGER_REVERSED         = "ledger.reversed";
+    @Value("${app.rabbit.queue.ledger-debit-confirmed}")
+    private String queueLedgerDebitConfirmed;
 
-    // Filas do transaction-service
-    public static final String Q_LEDGER_DEBITED         = "transaction.ledger.debited";
-    public static final String Q_LEDGER_DEBIT_CONFIRMED = "transaction.ledger.debit.confirmed";
-    public static final String Q_LEDGER_REVERSED        = "transaction.ledger.reversed";
+    @Value("${app.rabbit.queue.ledger-reversed}")
+    private String queueLedgerReversed;
 
-    @Bean
-    public TopicExchange ledgerExchange() {
-        return new TopicExchange(EXCHANGE, true, false);
-    }
+    @Value("${app.rabbit.routing-key.ledger-debited}")
+    private String routingKeyLedgerDebited;
+
+    @Value("${app.rabbit.routing-key.ledger-debit-confirmed}")
+    private String routingKeyLedgerDebitConfirmed;
+
+    @Value("${app.rabbit.routing-key.ledger-reversed}")
+    private String routingKeyLedgerReversed;
 
     @Bean
-    public Queue queueLedgerDebited() {
-        return QueueBuilder.durable(Q_LEDGER_DEBITED).build();
-    }
-
-    @Bean
-    public Queue queueLedgerDebitConfirmed() {
-        return QueueBuilder.durable(Q_LEDGER_DEBIT_CONFIRMED).build();
-    }
-
-    @Bean
-    public Queue queueLedgerReversed() {
-        return QueueBuilder.durable(Q_LEDGER_REVERSED).build();
-    }
-
-    @Bean
-    public Binding bindingLedgerDebited() {
-        return BindingBuilder.bind(queueLedgerDebited())
-                .to(ledgerExchange()).with(RK_LEDGER_DEBITED);
-    }
-
-    @Bean
-    public Binding bindingLedgerDebitConfirmed() {
-        return BindingBuilder.bind(queueLedgerDebitConfirmed())
-                .to(ledgerExchange()).with(RK_LEDGER_DEBIT_CONFIRMED);
-    }
-
-    @Bean
-    public Binding bindingLedgerReversed() {
-        return BindingBuilder.bind(queueLedgerReversed())
-                .to(ledgerExchange()).with(RK_LEDGER_REVERSED);
-    }
-
-    @Bean
-    public Jackson2JsonMessageConverter messageConverter() {
+    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(messageConverter());
-        return template;
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,
+                                         Jackson2JsonMessageConverter messageConverter) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(messageConverter);
+        return rabbitTemplate;
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+            ConnectionFactory connectionFactory,
+            Jackson2JsonMessageConverter messageConverter) {
+
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setMessageConverter(messageConverter);
+        return factory;
+    }
+
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    @Bean
+    public TopicExchange ledgerExchange() {
+        return new TopicExchange(exchangeName, true, false);
+    }
+
+    @Bean
+    public Queue ledgerDebitedQueue() {
+        return QueueBuilder.durable(queueLedgerDebited).build();
+    }
+
+    @Bean
+    public Queue ledgerDebitConfirmedQueue() {
+        return QueueBuilder.durable(queueLedgerDebitConfirmed).build();
+    }
+
+    @Bean
+    public Queue ledgerReversedQueue() {
+        return QueueBuilder.durable(queueLedgerReversed).build();
+    }
+
+    @Bean
+    public Binding ledgerDebitedBinding(Queue ledgerDebitedQueue, TopicExchange ledgerExchange) {
+        return BindingBuilder
+                .bind(ledgerDebitedQueue)
+                .to(ledgerExchange)
+                .with(routingKeyLedgerDebited);
+    }
+
+    @Bean
+    public Binding ledgerDebitConfirmedBinding(Queue ledgerDebitConfirmedQueue, TopicExchange ledgerExchange) {
+        return BindingBuilder
+                .bind(ledgerDebitConfirmedQueue)
+                .to(ledgerExchange)
+                .with(routingKeyLedgerDebitConfirmed);
+    }
+
+    @Bean
+    public Binding ledgerReversedBinding(Queue ledgerReversedQueue, TopicExchange ledgerExchange) {
+        return BindingBuilder
+                .bind(ledgerReversedQueue)
+                .to(ledgerExchange)
+                .with(routingKeyLedgerReversed);
     }
 }

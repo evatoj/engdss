@@ -6,7 +6,8 @@ import com.engss.transaction.domain.model.TransacaoPix;
 import com.engss.transaction.domain.model.Usuario;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
 import com.engss.transaction.domain.repository.UsuarioRepository;
-import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
+//import com.engss.transaction.infraestructure.messaging.PixEventPublisher;
+import com.engss.transaction.application.service.EventoOutboxService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +20,14 @@ public class TransacaoPixService {
 
     private final TransacaoPixRepository transacaoPixRepository;
     private final UsuarioRepository usuarioRepository;
-    private final PixEventPublisher pixEventPublisher;
+    private final EventoOutboxService eventoOutboxService;
 
     public TransacaoPixService(TransacaoPixRepository transacaoPixRepository,
                                UsuarioRepository usuarioRepository,
-                               PixEventPublisher pixEventPublisher) {
+                               EventoOutboxService pixEventPublisher) {
         this.transacaoPixRepository = transacaoPixRepository;
         this.usuarioRepository = usuarioRepository;
-        this.pixEventPublisher = pixEventPublisher;
+        this.eventoOutboxService = pixEventPublisher;
     }
 
     @Transactional
@@ -67,8 +68,13 @@ public class TransacaoPixService {
 
         TransacaoPix salva = transacaoPixRepository.save(transacao);
 
-        pixEventPublisher.publishSaqueIniciado(accountId, idempotencyKey, valor, correlationId);
-
+        eventoOutboxService.registrarSaqueIniciado(
+            salva.getId(),
+            accountId,
+            idempotencyKey,
+            valor,
+            correlationId
+        );
         return salva;
     }
 
