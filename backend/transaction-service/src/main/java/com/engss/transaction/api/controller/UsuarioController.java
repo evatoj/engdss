@@ -104,7 +104,10 @@ public class UsuarioController {
                 transacao.getValor(),
                 transacao.getDescricao(),
                 transacao.getStatus(),
-                transacao.getDataCriacao()
+                transacao.getDataCriacao(),
+                transacao.getAsaasTransferId(),
+                transacao.getAsaasStatus(),
+                transacao.getMotivoFalha()
         );
     }
 }
