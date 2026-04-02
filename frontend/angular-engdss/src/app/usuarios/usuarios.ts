@@ -25,7 +25,7 @@ import { TransacaoResponse } from '../../../models/transacao_response';
   templateUrl: './usuarios.html'
 })
 export class UsuariosComponent implements OnInit {
-  usuarios: Usuario[] = [];
+  usuarios: Usuario[] = [{ id: 'Vazio', nome: 'Vazio', saldo: 0 }];
   transacoes: TransacaoResponse[] = [];
 
   nome = '';
@@ -44,16 +44,23 @@ export class UsuariosComponent implements OnInit {
   }
 
   carregarUsuarios(): void {
-    this.carregandoUsuarios = true;
+    setTimeout(() => {
+        this.carregandoUsuarios = false;
+        }, 500); // Simula um pequeno atraso para exibir o carregamento
 
     this.transacaoService.listarUsuarios().subscribe({
       next: (usuarios) => {
+        this.transacaoService.usuarios = usuarios; // Atualiza a lista de usuários no serviço
         this.usuarios = usuarios;
+        setTimeout(() => {
         this.carregandoUsuarios = false;
+        }, 500); // Simula um pequeno atraso para exibir o carregamento
       },
       error: (err) => {
         console.error('Erro ao listar usuários', err);
+        setTimeout(() => {
         this.carregandoUsuarios = false;
+        }, 500); // Simula um pequeno atraso para exibir o carregamento
       }
     });
   }
@@ -82,25 +89,31 @@ export class UsuariosComponent implements OnInit {
     this.usuarioSelecionado = usuario;
     this.transacoes = [];
     this.saldoUsuario = null;
-    this.carregandoDetalhes = true;
+    setTimeout(() => {
+      this.carregandoDetalhes = true;
+    }, 500); // Simula um pequeno atraso para exibir o carregamento
 
-    this.transacaoService.consultarSaldoUsuario(usuario.id).subscribe({
+    this.transacaoService.consultarSaldoUsuario(usuario.id.toString()).subscribe({
       next: (res: any) => {
         this.saldoUsuario = typeof res === 'number' ? res : res.saldo;
       },
       error: (err) => {
-        console.error('Erro ao consultar saldo', err);
+        console.error('Erro ao consultar saldo', err); 
       }
     });
 
-    this.transacaoService.listarTransacoesDoUsuario(usuario.id).subscribe({
+    this.transacaoService.listarTransacoesDoUsuario(usuario.id.toString()).subscribe({
       next: (transacoes) => {
         this.transacoes = transacoes;
+        setTimeout(() => {
         this.carregandoDetalhes = false;
+        }, 500); // Simula um pequeno atraso para exibir o carregamento
       },
       error: (err) => {
         console.error('Erro ao listar transações', err);
+        setTimeout(() => {
         this.carregandoDetalhes = false;
+        }, 500); // Simula um pequeno atraso para exibir o carregamento
       }
     });
   }

@@ -1,4 +1,5 @@
 export interface Usuario {
-  id: number;
+  id: string;
   nome: string;
+  saldo: number;
 }

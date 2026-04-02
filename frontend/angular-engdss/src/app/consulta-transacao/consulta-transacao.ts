@@ -22,7 +22,7 @@ import { TransacaoResponse } from '../../../models/transacao_response';
   templateUrl: './consulta-transacao.html'
 })
 export class ConsultaTransacaoComponent {
-  transacaoId: number | null = null;
+  transacaoId: string | null = null;
   transacao: TransacaoResponse | null = null;
 
   constructor(private transacaoService: TransacaoService) {}
