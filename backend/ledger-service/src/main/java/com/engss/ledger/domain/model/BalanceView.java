@@ -50,6 +50,9 @@ public class BalanceView {
             case DEBIT_CONFIRMED -> {
                 this.pendingBalance = this.pendingBalance.subtract(event.getAmount());
             }
+            case DEBIT_DENIED -> {
+                // saldo insuficiente — nenhuma alteração no saldo
+            }
             case CREDIT -> {
                 this.availableBalance = this.availableBalance.add(event.getAmount());
             }

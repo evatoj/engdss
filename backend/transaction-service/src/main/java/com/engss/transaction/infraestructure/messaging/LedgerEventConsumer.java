@@ -51,6 +51,7 @@ public class LedgerEventConsumer {
         }
     }
 
+
     @RabbitListener(queues = "${app.rabbit.queue.ledger-debit-confirmed}")
     @Transactional
     public void onLedgerDebitConfirmed(Map<String, Object> payload) {
@@ -97,6 +98,30 @@ public class LedgerEventConsumer {
 
         } catch (Exception e) {
             log.error("Erro ao processar evento ledger.reversed. payload={}", payload, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @RabbitListener(queues = "${app.rabbit.queue.ledger-debit-denied}")
+    @Transactional
+    public void onLedgerDebitDenied(Map<String, Object> payload) {
+        try {
+            Object correlationIdObj = payload.get("correlationId");
+            if (correlationIdObj == null) {
+                log.warn("Evento ledger.debit.denied sem correlationId. payload={}", payload);
+                return;
+            }
+
+            String correlationId = correlationIdObj.toString();
+
+            transacaoPixRepository.findByCorrelationId(correlationId).ifPresentOrElse(transacao -> {
+                transacao.setStatus(StatusTransacao.FALHA);
+                transacaoPixRepository.save(transacao);
+                log.info("Transação atualizada para FALHA por saldo insuficiente. correlationId={}", correlationId);
+            }, () -> log.warn("Transação não encontrada para ledger.debit.denied. correlationId={}", correlationId));
+
+        } catch (Exception e) {
+            log.error("Erro ao processar evento ledger.debit.denied. payload={}", payload, e);
             throw new RuntimeException(e);
         }
     }

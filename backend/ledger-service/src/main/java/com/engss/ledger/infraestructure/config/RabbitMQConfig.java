@@ -17,11 +17,13 @@ public class RabbitMQConfig {
     public static final String RK_LEDGER_DEBITED          = "ledger.debited";
     public static final String RK_LEDGER_DEBIT_CONFIRMED  = "ledger.debit.confirmed";
     public static final String RK_LEDGER_REVERSED         = "ledger.reversed";
+    public static final String RK_LEDGER_DEBIT_DENIED     = "ledger.debit.denied";
 
     public static final String Q_SAQUE_INICIADO  = "ledger.saque.iniciado";
     public static final String Q_PIX_CONFIRMADO  = "ledger.pix.confirmado";
     public static final String Q_PIX_FALHOU      = "ledger.pix.falhou";
     public static final String Q_CREDITO_INICIAL = "ledger.credito.inicial";
+    public static final String Q_DEBIT_DENIED    = "transaction.ledger.debit.denied";
 
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
@@ -75,6 +77,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue queueDebitDenied() {
+        return QueueBuilder.durable(Q_DEBIT_DENIED).build();
+    }
+
+    @Bean
     public Binding bindingSaqueIniciado() {
         return BindingBuilder.bind(queueSaqueIniciado())
                 .to(ledgerExchange()).with(Q_SAQUE_INICIADO);
@@ -96,5 +103,11 @@ public class RabbitMQConfig {
     public Binding bindingCreditoInicial() {
         return BindingBuilder.bind(queueCreditoInicial())
                 .to(ledgerExchange()).with(Q_CREDITO_INICIAL);
+    }
+
+    @Bean
+    public Binding bindingDebitDenied() {
+        return BindingBuilder.bind(queueDebitDenied())
+                .to(ledgerExchange()).with(RK_LEDGER_DEBIT_DENIED);
     }
 }
