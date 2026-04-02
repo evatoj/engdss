@@ -3,6 +3,8 @@ package com.engss.transaction.application.service;
 import com.engss.transaction.domain.model.StatusTransacao;
 import com.engss.transaction.domain.model.TransacaoPix;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
+import com.engss.transaction.infraestructure.pix.PixAdapter;
+import com.engss.transaction.infraestructure.pix.PixTransferResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,18 +40,14 @@ public class PixSagaService {
         }
 
         transacao.setStatus(StatusTransacao.EM_PROCESSAMENTO);
+        transacaoPixRepository.save(transacao);
 
         try {
-            PixTransferResult resultado = pixAdapter.transferir(
-                    correlationId,
-                    transacao.getChavePixDestino(),
-                    transacao.getValor(),
-                    transacao.getDescricao()
-            );
+            PixTransferResult resultado = pixAdapter.transferir(transacao);
 
-            transacao.setAsaasTransferId(resultado.transferId());
-            transacao.setAsaasStatus(resultado.status());
-            transacao.setMotivoFalha(resultado.failReason());
+            transacao.setAsaasTransferId(resultado.getTransferId());
+            transacao.setAsaasStatus(resultado.getStatus());
+            transacao.setMotivoFalha(resultado.getMotivoFalha());
             transacaoPixRepository.save(transacao);
 
             if (resultado.concluidoComSucesso()) {
@@ -58,27 +56,28 @@ public class PixSagaService {
                         transacao.getUsuario().getId(),
                         transacao.getValor(),
                         correlationId,
-                        resultado.transferId()
+                        resultado.getTransferId()
                 );
                 return;
             }
 
-            if (resultado.falhou()) {
-                transacao.setStatus(StatusTransacao.FALHA);
-                transacaoPixRepository.save(transacao);
-                eventoOutboxService.registrarPixFalhou(
-                        transacao.getId(),
-                        transacao.getUsuario().getId(),
-                        transacao.getValor(),
-                        correlationId,
-                        resultado.transferId(),
-                        resultado.failReason()
-                );
-            }
+            transacao.setStatus(StatusTransacao.FALHA);
+            transacaoPixRepository.save(transacao);
+
+            eventoOutboxService.registrarPixFalhou(
+                    transacao.getId(),
+                    transacao.getUsuario().getId(),
+                    transacao.getValor(),
+                    correlationId,
+                    resultado.getTransferId(),
+                    resultado.getMotivoFalha()
+            );
 
         } catch (Exception e) {
+            transacao.setStatus(StatusTransacao.FALHA);
             transacao.setMotivoFalha(e.getMessage());
             transacaoPixRepository.save(transacao);
+
             eventoOutboxService.registrarPixFalhou(
                     transacao.getId(),
                     transacao.getUsuario().getId(),
@@ -104,6 +103,8 @@ public class PixSagaService {
         transacao.setMotivoFalha(failReason);
 
         if ("TRANSFER_DONE".equalsIgnoreCase(event)) {
+            transacaoPixRepository.save(transacao);
+
             if (transacao.getStatus() != StatusTransacao.CONCLUIDA) {
                 eventoOutboxService.registrarPixConfirmado(
                         transacao.getId(),
@@ -119,6 +120,7 @@ public class PixSagaService {
         if ("TRANSFER_FAILED".equalsIgnoreCase(event) || "TRANSFER_CANCELLED".equalsIgnoreCase(event)) {
             transacao.setStatus(StatusTransacao.FALHA);
             transacaoPixRepository.save(transacao);
+
             eventoOutboxService.registrarPixFalhou(
                     transacao.getId(),
                     transacao.getUsuario().getId(),
