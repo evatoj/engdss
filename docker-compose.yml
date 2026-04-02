@@ -77,6 +77,35 @@ services:
         condition: service_healthy
     networks:
       - observability-net
+  # ── Biometric Adapter Service ─────────────────────────
+  biometric-adapter-service:
+    build:
+      context: ./backend/biometric-adapter-service
+      dockerfile: Dockerfile
+    container_name: biometric-adapter-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      VALIDRA_BASE_URL: https://api.validra.com.br
+      VALIDRA_API_KEY: ${VALIDRA_API_KEY:-STUB_KEY}
+      SERVER_PORT: 8083
+      OTEL_SERVICE_NAME: biometric-adapter-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_RESOURCE_ATTRIBUTES: service.name=biometric-adapter-service,deployment.environment=dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - observability-net
+
 
   # ── PostgreSQL ────────────────────────────────────────
   postgres:

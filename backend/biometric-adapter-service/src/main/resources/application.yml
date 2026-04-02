@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: biometric-adapter-service
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        default-requeue-rejected: false  # Mensagens com erro vão para DLQ, não requeue
+
+# ── Filas / Exchange ────────────────────────────────────────────────── #
+rabbitmq:
+  exchange: biometric.exchange
+  queues:
+    request: biometric.verification.request
+    response: biometric.verification.response
+  ttl-ms: 60000       # 1 minuto — TTL das mensagens antes de ir para DLQ
+  prefetch: 1         # 1 mensagem por worker (chamada à Validra é síncrona)
+
+# ── Validra API ──────────────────────────────────────────────────────── #
+validra:
+  base-url: ${VALIDRA_BASE_URL:https://api.validra.com.br}
+  api-key: ${VALIDRA_API_KEY:STUB_KEY}   # Nunca commitar a chave real
+  endpoint:
+    facial: /v1/biometrics/facial        # TODO: Confirmar na doc da Validra
+  timeout:
+    connect-ms: 3000
+    read-ms: 10000
+    write-ms: 5000
+  retry:
+    max-attempts: 2
+    back-off-ms: 500
+
+# ── Actuator / Health ────────────────────────────────────────────────── #
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    rabbit:
+      enabled: true
+
+# ── Logging ──────────────────────────────────────────────────────────── #
+logging:
+  level:
+    com.pagamento.biometricadapter: DEBUG
+    org.springframework.amqp: INFO
+    reactor.netty: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{transactionId}] %logger{36} - %msg%n"
+
+---
+# ── Perfil: local ────────────────────────────────────────────────────── #
+spring:
+  config:
+    activate:
+      on-profile: local
+  rabbitmq:
+    host: localhost
+
+logging:
+  level:
+    com.pagamento.biometricadapter: TRACE
+
+---
+# ── Perfil: test ─────────────────────────────────────────────────────── #
+spring:
+  config:
+    activate:
+      on-profile: test
+  rabbitmq:
+    host: localhost
+
+validra:
+  api-key: TEST_KEY_STUB
