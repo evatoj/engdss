@@ -55,6 +55,10 @@ public class LedgerEvent {
                                      BigDecimal amount, UUID correlationId) {
         return build(accountId, idempotencyKey, LedgerEventType.CREDIT, amount, correlationId);
     }
+    public static LedgerEvent debitDenied(UUID accountId, UUID idempotencyKey,
+                                          BigDecimal amount, UUID correlationId) {
+        return build(accountId, idempotencyKey, LedgerEventType.DEBIT_DENIED, amount, correlationId);
+    }
 
     public static LedgerEvent reversal(UUID accountId, UUID idempotencyKey,
                                        BigDecimal amount, UUID correlationId) {

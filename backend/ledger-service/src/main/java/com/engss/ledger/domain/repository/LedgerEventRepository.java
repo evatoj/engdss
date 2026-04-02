@@ -14,5 +14,7 @@ public interface LedgerEventRepository extends JpaRepository<LedgerEvent, UUID> 
 
     Optional<LedgerEvent> findByCorrelationIdAndType(UUID correlationId, LedgerEventType type);
 
+    Optional<LedgerEvent> findByIdempotencyKeyAndType(UUID idempotencyKey, LedgerEventType type);
+
     boolean existsByIdempotencyKey(UUID idempotencyKey);
 }

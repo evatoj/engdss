@@ -29,6 +29,9 @@ public class RabbitMQConfig {
     @Value("${app.rabbit.queue.ledger-reversed}")
     private String queueLedgerReversed;
 
+    @Value("${app.rabbit.queue.ledger-debit-denied}")
+    private String queueLedgerDebitDenied;
+
     @Value("${app.rabbit.routing-key.ledger-debited}")
     private String routingKeyLedgerDebited;
 
@@ -37,6 +40,9 @@ public class RabbitMQConfig {
 
     @Value("${app.rabbit.routing-key.ledger-reversed}")
     private String routingKeyLedgerReversed;
+
+    @Value("${app.rabbit.routing-key.ledger-debit-denied}")
+    private String routingKeyLedgerDebitDenied;
 
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
@@ -55,7 +61,6 @@ public class RabbitMQConfig {
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
             Jackson2JsonMessageConverter messageConverter) {
-
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
@@ -88,6 +93,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue ledgerDebitDeniedQueue() {
+        return QueueBuilder.durable(queueLedgerDebitDenied).build();
+    }
+
+    @Bean
     public Binding ledgerDebitedBinding(Queue ledgerDebitedQueue, TopicExchange ledgerExchange) {
         return BindingBuilder
                 .bind(ledgerDebitedQueue)
@@ -109,5 +119,13 @@ public class RabbitMQConfig {
                 .bind(ledgerReversedQueue)
                 .to(ledgerExchange)
                 .with(routingKeyLedgerReversed);
+    }
+
+    @Bean
+    public Binding ledgerDebitDeniedBinding(Queue ledgerDebitDeniedQueue, TopicExchange ledgerExchange) {
+        return BindingBuilder
+                .bind(ledgerDebitDeniedQueue)
+                .to(ledgerExchange)
+                .with(routingKeyLedgerDebitDenied);
     }
 }

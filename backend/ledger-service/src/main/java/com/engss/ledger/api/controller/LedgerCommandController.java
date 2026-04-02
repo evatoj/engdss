@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -20,14 +21,26 @@ public class LedgerCommandController {
     private final LedgerCommandService ledgerCommandService;
 
     @PostMapping("/debit")
-    public ResponseEntity<Void> debit(
+    public ResponseEntity<?> debit(
             @RequestHeader("Idempotency-Key") UUID idempotencyKey,
             @RequestHeader("X-Correlation-Id") UUID correlationId,
             @Valid @RequestBody DebitRequest request) {
 
-        ledgerCommandService.debitPending(new DebitCommand(
+        boolean aprovado = ledgerCommandService.debitPending(new DebitCommand(
             request.accountId(), idempotencyKey, request.amount(), correlationId
         ));
+
+        if (!aprovado) {
+            return ResponseEntity
+                    .status(402)
+                    .body(Map.of(
+                        "status", "DENIED",
+                        "reason", "Saldo insuficiente para realizar a operação.",
+                        "accountId", request.accountId(),
+                        "correlationId", correlationId
+                    ));
+        }
+
         return ResponseEntity.accepted().build(); // 202 — fluxo assíncrono
     }
 

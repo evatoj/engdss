@@ -3,7 +3,6 @@ package com.engss.ledger.application.service;
 import com.engss.ledger.application.command.CreditCommand;
 import com.engss.ledger.application.command.DebitCommand;
 import com.engss.ledger.application.command.ReversalCommand;
-import com.engss.ledger.application.exception.InsufficientBalanceException;
 import com.engss.ledger.domain.model.BalanceView;
 import com.engss.ledger.domain.model.LedgerEvent;
 import com.engss.ledger.domain.model.LedgerEventType;
@@ -12,6 +11,8 @@ import com.engss.ledger.domain.repository.LedgerEventRepository;
 import com.engss.ledger.infraestructure.outbox.OutboxEvent;
 import com.engss.ledger.infraestructure.outbox.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,21 +24,44 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LedgerCommandService {
 
+    private static final Logger log = LoggerFactory.getLogger(LedgerCommandService.class);
+
     private final LedgerEventRepository ledgerEventRepository;
     private final BalanceViewRepository balanceViewRepository;
     private final OutboxEventRepository outboxEventRepository;
 
+    /**
+     * Tenta bloquear o saldo para débito.
+     *
+     * @return true  — saldo suficiente, DEBIT_PENDING registrado, evento enfileirado para o Rabbit.
+     *         false — saldo insuficiente, DEBIT_DENIED registrado, nenhuma mensagem enviada ao Rabbit.
+     */
     @Transactional
-    public void debitPending(DebitCommand cmd) {
+    public boolean debitPending(DebitCommand cmd) {
         if (ledgerEventRepository.existsByIdempotencyKey(cmd.idempotencyKey())) {
-            return;
+            // idempotência: descobre se a tentativa anterior foi aprovada ou negada
+            return ledgerEventRepository
+                    .findByIdempotencyKeyAndType(cmd.idempotencyKey(), LedgerEventType.DEBIT_PENDING)
+                    .isPresent();
         }
 
         var balance = getOrCreateBalance(cmd.accountId());
+
         if (balance.getAvailableBalance().compareTo(cmd.amount()) < 0) {
-            throw new InsufficientBalanceException(cmd.accountId(), cmd.amount());
+            // --- SALDO INSUFICIENTE: registra evento e NÃO publica no Rabbit ---
+            var deniedEvent = LedgerEvent.debitDenied(
+                    cmd.accountId(), cmd.idempotencyKey(), cmd.amount(), cmd.correlationId()
+            );
+            ledgerEventRepository.save(deniedEvent);
+            // BalanceView.apply(DEBIT_DENIED) não altera saldo — apenas atualiza updatedAt
+            balance.apply(deniedEvent);
+            balanceViewRepository.save(balance);
+
+            saveOutbox("LedgerDebitDenied", cmd.correlationId(), "ledger.debit.denied");
+            return false;
         }
 
+        // --- SALDO SUFICIENTE: bloqueia e enfileira para o Rabbit ---
         var event = LedgerEvent.debitPending(
                 cmd.accountId(), cmd.idempotencyKey(), cmd.amount(), cmd.correlationId()
         );
@@ -47,15 +71,23 @@ public class LedgerCommandService {
         balanceViewRepository.save(balance);
 
         saveOutbox("LedgerDebited", cmd.correlationId(), "ledger.debited");
+        return true;
     }
 
     @Transactional
     public void confirmDebit(UUID correlationId, UUID accountId, BigDecimal amount) {
-        boolean jaConfirmado = ledgerEventRepository
+        // Idempotência: já confirmado anteriormente
+        if (ledgerEventRepository
                 .findByCorrelationIdAndType(correlationId, LedgerEventType.DEBIT_CONFIRMED)
-                .isPresent();
+                .isPresent()) {
+            return;
+        }
 
-        if (jaConfirmado) {
+        // Guard: transação foi negada — não existe DEBIT_PENDING para confirmar
+        if (ledgerEventRepository
+                .findByCorrelationIdAndType(correlationId, LedgerEventType.DEBIT_DENIED)
+                .isPresent()) {
+            log.warn("confirmDebit ignorado — transação foi negada. correlationId={}", correlationId);
             return;
         }
 
@@ -77,11 +109,18 @@ public class LedgerCommandService {
 
     @Transactional
     public void reverse(ReversalCommand cmd) {
-        boolean jaRevertido = ledgerEventRepository
+        // Idempotência: já revertido anteriormente
+        if (ledgerEventRepository
                 .findByCorrelationIdAndType(cmd.correlationId(), LedgerEventType.REVERSAL)
-                .isPresent();
+                .isPresent()) {
+            return;
+        }
 
-        if (jaRevertido) {
+        // Guard: transação foi negada — não há saldo bloqueado para estornar
+        if (ledgerEventRepository
+                .findByCorrelationIdAndType(cmd.correlationId(), LedgerEventType.DEBIT_DENIED)
+                .isPresent()) {
+            log.warn("reverse ignorado — transação foi negada, nada a estornar. correlationId={}", cmd.correlationId());
             return;
         }
 
