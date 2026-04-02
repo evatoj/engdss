@@ -76,13 +76,14 @@ public class EventoOutboxService {
     public void registrarPixConfirmado(UUID transacaoPixId,
                                        UUID accountId,
                                        BigDecimal amount,
-                                       UUID correlationId,
-                                       String asaasTransferId) {
+                                       UUID correlationId
+                                    //    String asaasTransferId
+    ) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("accountId", accountId.toString());
         payload.put("amount", amount);
         payload.put("correlationId", correlationId.toString());
-        payload.put("asaasTransferId", asaasTransferId);
+        // payload.put("asaasTransferId", asaasTransferId);
 
         EventoOutbox evento = EventoOutbox.criar(
                 transacaoPixId,
@@ -98,13 +99,13 @@ public class EventoOutboxService {
                                    UUID accountId,
                                    BigDecimal amount,
                                    UUID correlationId,
-                                   String asaasTransferId,
+                                //    String asaasTransferId,
                                    String failReason) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("accountId", accountId.toString());
         payload.put("amount", amount);
         payload.put("correlationId", correlationId.toString());
-        payload.put("asaasTransferId", asaasTransferId);
+        // payload.put("asaasTransferId", asaasTransferId);
         payload.put("failReason", failReason);
 
         EventoOutbox evento = EventoOutbox.criar(

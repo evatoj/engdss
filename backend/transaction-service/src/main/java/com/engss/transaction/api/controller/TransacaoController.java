@@ -51,10 +51,10 @@ public class TransacaoController {
                 transacao.getValor(),
                 transacao.getDescricao(),
                 transacao.getStatus(),
-                transacao.getDataCriacao(),
-                transacao.getAsaasTransferId(),
-                transacao.getAsaasStatus(),
-                transacao.getMotivoFalha()
+                transacao.getDataCriacao()
+                // transacao.getAsaasTransferId(),
+                // transacao.getAsaasStatus(),
+                // transacao.getMotivoFalha()
         );
     }
 }

@@ -42,14 +42,14 @@ public class TransacaoPix {
     @Column(name = "chave_idempotencia", length = 100, nullable = false, unique = true)
     private String idempotencyKey;
 
-    @Column(name = "asaas_transfer_id", length = 100, unique = true)
-    private String asaasTransferId;
+//    @Column(name = "asaas_transfer_id", length = 100, unique = true)
+//    private String asaasTransferId;
 
-    @Column(name = "asaas_status", length = 40)
-    private String asaasStatus;
+//    @Column(name = "asaas_status", length = 40)
+//    private String asaasStatus;
 
-    @Column(name = "motivo_falha", length = 255)
-    private String motivoFalha;
+    // @Column(name = "motivo_falha", length = 255)
+    // private String motivoFalha;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -101,17 +101,17 @@ public class TransacaoPix {
         return idempotencyKey != null ? UUID.fromString(idempotencyKey) : null;
     }
 
-    public String getAsaasTransferId() {
-        return asaasTransferId;
-    }
+    // public String getAsaasTransferId() {
+    //     return asaasTransferId;
+    // }
 
-    public String getAsaasStatus() {
-        return asaasStatus;
-    }
+//    public String getAsaasStatus() {
+//        return asaasStatus;
+//    }
 
-    public String getMotivoFalha() {
-        return motivoFalha;
-    }
+    // public String getMotivoFalha() {
+    //     return motivoFalha;
+    // }
 
     public void setId(UUID id) {
         this.id = id;
@@ -154,18 +154,18 @@ public class TransacaoPix {
         this.idempotencyKey = idempotencyKey != null ? idempotencyKey.toString() : null;
     }
 
-    public void setAsaasTransferId(String asaasTransferId) {
-        this.asaasTransferId = asaasTransferId;
-        this.dataAtualizacao = LocalDateTime.now();
-    }
+    // public void setAsaasTransferId(String asaasTransferId) {
+    //     this.asaasTransferId = asaasTransferId;
+    //     this.dataAtualizacao = LocalDateTime.now();
+    // }
 
-    public void setAsaasStatus(String asaasStatus) {
-        this.asaasStatus = asaasStatus;
-        this.dataAtualizacao = LocalDateTime.now();
-    }
+    // public void setAsaasStatus(String asaasStatus) {
+    //     this.asaasStatus = asaasStatus;
+    //     this.dataAtualizacao = LocalDateTime.now();
+    // }
 
-    public void setMotivoFalha(String motivoFalha) {
-        this.motivoFalha = motivoFalha;
-        this.dataAtualizacao = LocalDateTime.now();
-    }
+    // public void setMotivoFalha(String motivoFalha) {
+    //     this.motivoFalha = motivoFalha;
+    //     this.dataAtualizacao = LocalDateTime.now();
+    // }
 }

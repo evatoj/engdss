@@ -7,7 +7,12 @@ public class PixTransferResult {
     private final String status;
     private final String motivoFalha;
 
-    public PixTransferResult(boolean sucesso, String transferId, String status, String motivoFalha) {
+    public PixTransferResult(
+        boolean sucesso, 
+        String transferId, 
+        String status, 
+        String motivoFalha
+    ) {
         this.sucesso = sucesso;
         this.transferId = transferId;
         this.status = status;
