@@ -13,7 +13,7 @@ Implementar um ledger de dupla entrada (double-entry) integrado com a API PIX em
 
 ## Grupo Responsável e Responsabilidades:
 
-* Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico, Setup inicial do Docker e Front-End do Projeto)
+* Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico, Setup inicial do Docker)
 * João Victor da Silva Cirilo (Níveis 1 e 2 de Diagrama C4, Back-End)
 * João Victor Oliveira de Lima (Nível 1 de Diagrama C4, Back-End e Banco de Dados)
 * Luiz Henrique dos Santos Souza (Níveis 1 e 2 de Diagrama C4, Front-End do Projeto, Signoz e configuração de informações para o OtelCollector; Testes de Carga, Resiliência e Integração)
