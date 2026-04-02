@@ -18,4 +18,6 @@ public interface TransacaoPixRepository extends JpaRepository<TransacaoPix, UUID
 
     @Query("SELECT t FROM TransacaoPix t WHERE t.idempotencyKey = :idempotencyKey")
     Optional<TransacaoPix> findByIdempotencyKey(@Param("idempotencyKey") String idempotencyKey);
+
+    Optional<TransacaoPix> findByAsaasTransferId(String asaasTransferId);
 }

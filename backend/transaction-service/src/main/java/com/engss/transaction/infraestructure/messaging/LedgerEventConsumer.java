@@ -1,5 +1,6 @@
 package com.engss.transaction.infraestructure.messaging;
 
+import com.engss.transaction.application.service.PixSagaService;
 import com.engss.transaction.domain.model.StatusTransacao;
 import com.engss.transaction.domain.repository.TransacaoPixRepository;
 import org.slf4j.Logger;
@@ -16,9 +17,12 @@ public class LedgerEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(LedgerEventConsumer.class);
 
     private final TransacaoPixRepository transacaoPixRepository;
+    private final PixSagaService pixSagaService;
 
-    public LedgerEventConsumer(TransacaoPixRepository transacaoPixRepository) {
+    public LedgerEventConsumer(TransacaoPixRepository transacaoPixRepository,
+                               PixSagaService pixSagaService) {
         this.transacaoPixRepository = transacaoPixRepository;
+        this.pixSagaService = pixSagaService;
     }
 
     @RabbitListener(queues = "${app.rabbit.queue.ledger-debited}")
@@ -36,8 +40,9 @@ public class LedgerEventConsumer {
             transacaoPixRepository.findByCorrelationId(correlationId).ifPresentOrElse(transacao -> {
                 transacao.setStatus(StatusTransacao.EM_PROCESSAMENTO);
                 transacaoPixRepository.save(transacao);
+                pixSagaService.processarSaque(java.util.UUID.fromString(correlationId));
 
-                log.info("Transação atualizada para EM_PROCESSAMENTO. correlationId={}", correlationId);
+                log.info("Transação enviada ao PixAdapter. correlationId={}", correlationId);
             }, () -> log.warn("Transação não encontrada para ledger.debited. correlationId={}", correlationId));
 
         } catch (Exception e) {

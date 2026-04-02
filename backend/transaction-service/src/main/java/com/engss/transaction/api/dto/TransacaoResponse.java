@@ -15,6 +15,9 @@ public class TransacaoResponse {
     private String descricao;
     private StatusTransacao status;
     private LocalDateTime dataCriacao;
+    private String asaasTransferId;
+    private String asaasStatus;
+    private String motivoFalha;
 
     public TransacaoResponse(UUID id,
                              UUID usuarioId,
@@ -22,7 +25,10 @@ public class TransacaoResponse {
                              BigDecimal valor,
                              String descricao,
                              StatusTransacao status,
-                             LocalDateTime dataCriacao) {
+                             LocalDateTime dataCriacao,
+                             String asaasTransferId,
+                             String asaasStatus,
+                             String motivoFalha) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.chavePixDestino = chavePixDestino;
@@ -30,6 +36,9 @@ public class TransacaoResponse {
         this.descricao = descricao;
         this.status = status;
         this.dataCriacao = dataCriacao;
+        this.asaasTransferId = asaasTransferId;
+        this.asaasStatus = asaasStatus;
+        this.motivoFalha = motivoFalha;
     }
 
     public UUID getId() {
@@ -58,5 +67,17 @@ public class TransacaoResponse {
 
     public LocalDateTime getDataCriacao() {
         return dataCriacao;
+    }
+
+    public String getAsaasTransferId() {
+        return asaasTransferId;
+    }
+
+    public String getAsaasStatus() {
+        return asaasStatus;
+    }
+
+    public String getMotivoFalha() {
+        return motivoFalha;
     }
 }

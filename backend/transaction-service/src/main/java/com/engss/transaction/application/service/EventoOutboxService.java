@@ -21,6 +21,12 @@ public class EventoOutboxService {
     @Value("${app.rabbit.routing-key.saque-iniciado}")
     private String rkSaqueIniciado;
 
+    @Value("${app.rabbit.routing-key.pix-confirmado}")
+    private String rkPixConfirmado;
+
+    @Value("${app.rabbit.routing-key.pix-falhou}")
+    private String rkPixFalhou;
+
     public EventoOutboxService(EventoOutboxRepository eventoOutboxRepository) {
         this.eventoOutboxRepository = eventoOutboxRepository;
     }
@@ -61,6 +67,51 @@ public class EventoOutboxService {
                 "SaqueIniciado",
                 payload,
                 rkSaqueIniciado
+        );
+
+        eventoOutboxRepository.save(evento);
+    }
+
+
+    public void registrarPixConfirmado(UUID transacaoPixId,
+                                       UUID accountId,
+                                       BigDecimal amount,
+                                       UUID correlationId,
+                                       String asaasTransferId) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("accountId", accountId.toString());
+        payload.put("amount", amount);
+        payload.put("correlationId", correlationId.toString());
+        payload.put("asaasTransferId", asaasTransferId);
+
+        EventoOutbox evento = EventoOutbox.criar(
+                transacaoPixId,
+                "PixConfirmado",
+                payload,
+                rkPixConfirmado
+        );
+
+        eventoOutboxRepository.save(evento);
+    }
+
+    public void registrarPixFalhou(UUID transacaoPixId,
+                                   UUID accountId,
+                                   BigDecimal amount,
+                                   UUID correlationId,
+                                   String asaasTransferId,
+                                   String failReason) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("accountId", accountId.toString());
+        payload.put("amount", amount);
+        payload.put("correlationId", correlationId.toString());
+        payload.put("asaasTransferId", asaasTransferId);
+        payload.put("failReason", failReason);
+
+        EventoOutbox evento = EventoOutbox.criar(
+                transacaoPixId,
+                "PixFalhou",
+                payload,
+                rkPixFalhou
         );
 
         eventoOutboxRepository.save(evento);
