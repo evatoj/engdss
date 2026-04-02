@@ -1,5 +1,5 @@
 export interface CriarTransacaoRequest {
-  usuarioId: number;
+  usuarioId: string;
   chavePixDestino: string;
   valor: number;
   descricao?: string;

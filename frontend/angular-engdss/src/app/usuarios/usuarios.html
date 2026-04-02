@@ -70,7 +70,7 @@
 
   <h4>Transações do usuário</h4>
 
-  <p-table [value]="transacoes" [loading]="carregandoDetalhes" dataKey="id">
+  <p-table *ngIf="transacoes?.length != 0" [value]="transacoes" [loading]="carregandoDetalhes" dataKey="id">
     <ng-template pTemplate="header">
       <tr>
         <th>ID</th>

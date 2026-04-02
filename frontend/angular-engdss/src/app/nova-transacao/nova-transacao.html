@@ -1,11 +1,12 @@
 <p-card header="Nova transação PIX">
   <div class="grid">
     <div class="col-12 md:col-3">
-      <input
-        pInputText
-        type="number"
-        [(ngModel)]="usuarioId"
-        placeholder="ID do usuário"
+      <p-select
+        [options]="usuarios"
+        *ngIf="usuarios?.length"
+        [(ngModel)]="usuario"
+        placeholder="Usuário"
+        optionLabel="nome"
         class="w-full"
       />
     </div>

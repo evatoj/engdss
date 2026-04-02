@@ -1,8 +1,8 @@
 import { StatusTransacao } from "./type_status_transacao";
 
 export interface TransacaoResponse {
-  id: number;
-  usuarioId: number;
+  id: string;
+  usuarioId: string;
   chavePixDestino: string;
   valor: number;
   descricao?: string;
