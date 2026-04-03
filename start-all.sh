@@ -6,7 +6,8 @@ echo "🚀 Iniciando ambiente completo..."
 
 # 🔹 1. Subir serviços principais
 echo "📦 Subindo serviços do projeto (backend, frontend, banco, rabbit)..."
-docker compose up -d --build
+docker compose build --no-cache
+docker compose up -d 
 
 # 🔹 2. Subir SigNoz
 echo "📊 Subindo SigNoz..."
