@@ -2,6 +2,7 @@ package com.engss.transaction.api.controller;
 
 import com.engss.transaction.api.dto.CriarTransacaoRequest;
 import com.engss.transaction.api.dto.TransacaoResponse;
+import com.engss.transaction.application.service.ResultadoCriacaoTransacao;
 import com.engss.transaction.application.service.TransacaoPixService;
 import com.engss.transaction.domain.model.TransacaoPix;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class TransacaoController {
             @Valid @RequestBody CriarTransacaoRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
 
-        TransacaoPix transacao = transacaoPixService.criarTransacao(
+        ResultadoCriacaoTransacao resultado = transacaoPixService.criarTransacao(
                 request.getUsuarioId(),
                 request.getChavePixDestino(),
                 request.getValor(),
@@ -34,7 +35,8 @@ public class TransacaoController {
                 idempotencyKey
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(transacao));
+        HttpStatus status = resultado.replayIdempotente() ? HttpStatus.OK : HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(toResponse(resultado.transacao()));
     }
 
     @GetMapping("/{id}")

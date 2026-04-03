@@ -32,7 +32,7 @@ public class TransacaoPixService {
     }
 
     @Transactional
-    public TransacaoPix criarTransacao(UUID usuarioId,
+    public ResultadoCriacaoTransacao criarTransacao(UUID usuarioId,
                                        String chavePixDestino,
                                        BigDecimal valor,
                                        String descricao,
@@ -56,9 +56,9 @@ public class TransacaoPixService {
 
         String payloadCanonico = usuarioId + "|" + chavePixDestino + "|" + valor.toPlainString() + "|" + (descricao == null ? "" : descricao);
 
-        TransacaoPix existente = idempotenciaService.verificarOuIniciar(idempotencyKeyHeader, payloadCanonico);
-        if (existente != null) {
-            return existente;
+        ResultadoIdempotencia resultadoIdempotencia = idempotenciaService.verificarOuIniciar(idempotencyKeyHeader, payloadCanonico);
+        if (resultadoIdempotencia.replay()) {
+            return new ResultadoCriacaoTransacao(resultadoIdempotencia.transacaoExistente(), true);
         }
 
         UUID correlationId = UUID.randomUUID();
@@ -85,7 +85,7 @@ public class TransacaoPixService {
 
         idempotenciaService.concluir(idempotencyKeyHeader, salva.getId());
 
-        return salva;
+        return new ResultadoCriacaoTransacao(salva, false);
     }
 
     public TransacaoPix buscarPorId(UUID id) {

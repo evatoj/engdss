@@ -25,33 +25,32 @@ public class IdempotenciaService {
         this.transacaoPixRepository = transacaoPixRepository;
     }
 
-    public TransacaoPix verificarOuIniciar(String chave, String payloadCanonico) {
+    public ResultadoIdempotencia verificarOuIniciar(String chave, String payloadCanonico) {
         String requisicaoHash = gerarHash(payloadCanonico);
 
-        var existente = idempotenciaRepository.findByChave(chave);
-        if (existente.isPresent()) {
-            Idempotencia idem = existente.get();
+        try {
+            Idempotencia novo = Idempotencia.iniciar(chave, requisicaoHash);
+            idempotenciaRepository.saveAndFlush(novo);
+            return ResultadoIdempotencia.novoProcessamento();
+        } catch (DataIntegrityViolationException e) {
+            Idempotencia idem = idempotenciaRepository.findByChave(chave)
+                    .orElseThrow(() -> new IdempotenciaEmProcessamentoException("Requisição idempotente concorrente detectada."));
 
             if (idem.getRequisicaoHash() != null && !idem.getRequisicaoHash().equals(requisicaoHash)) {
                 throw new IllegalArgumentException("Idempotency-Key já utilizada com payload diferente.");
             }
 
             if ("CONCLUIDA".equals(idem.getStatus()) && idem.getTransacaoPixId() != null) {
-                return transacaoPixRepository.findById(idem.getTransacaoPixId())
+                TransacaoPix transacaoExistente = transacaoPixRepository.findById(idem.getTransacaoPixId())
                         .orElseThrow(() -> new IllegalStateException("Registro de idempotência aponta para transação inexistente."));
+                return ResultadoIdempotencia.replay(transacaoExistente);
             }
 
             if ("PROCESSANDO".equals(idem.getStatus())) {
                 throw new IdempotenciaEmProcessamentoException("Requisição com esta Idempotency-Key ainda está em processamento.");
             }
-        }
 
-        try {
-            Idempotencia novo = Idempotencia.iniciar(chave, requisicaoHash);
-            idempotenciaRepository.save(novo);
-            return null;
-        } catch (DataIntegrityViolationException e) {
-            throw new IdempotenciaEmProcessamentoException("Requisição idempotente concorrente detectada.");
+            throw new IllegalStateException("Status de idempotência inválido para a chave informada.");
         }
     }
 
