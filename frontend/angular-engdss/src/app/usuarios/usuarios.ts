@@ -10,6 +10,7 @@ import { CardModule } from 'primeng/card';
 import { TransacaoService } from '../../../serviços/transacao-service';
 import { Usuario } from '../../../models/usuario';
 import { TransacaoResponse } from '../../../models/transacao_response';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-usuarios',
@@ -20,7 +21,8 @@ import { TransacaoResponse } from '../../../models/transacao_response';
     TableModule,
     ButtonModule,
     InputTextModule,
-    CardModule
+    CardModule,
+    InputNumberModule,
   ],
   templateUrl: './usuarios.html'
 })

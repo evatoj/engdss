@@ -11,13 +11,21 @@
     </div>
 
     <div class="col-12 md:col-4">
-      <input
+      <!-- <input
         pInputText
         type="number"
         [(ngModel)]="saldoInicial"
         placeholder="Saldo inicial"
         class="w-full"
-      />
+      /> -->
+      <p-inputNumber
+        mode="currency"
+        currency="BRL"
+        locale="pt-BR"
+        [(ngModel)]="saldoInicial"
+        placeholder="Saldo inicial"
+        [min]="0"
+      ></p-inputNumber>
     </div>
 
     <div class="col-12 md:col-3">
