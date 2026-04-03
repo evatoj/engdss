@@ -6,7 +6,9 @@
 1. [ADRs](/docs/ADRs.md)
 1. [Padrões adotados](/docs/Padroes_adotados.md)
 1. [Stack tecnológico](/docs/Stack.md)
-1. [Plano de Testes](https://docs.google.com/document/d/1EiM8JaLrdN9V0i3dz0MKFG-QKvbfKT6_Dd8FVpe4jnU/edit?usp=sharing)
+1. [Plano de Testes](/PLANO%20DE%20TESTES.pdf)
+
+* Arquivo em doc do Plano de Testes: https://docs.google.com/document/d/1EiM8JaLrdN9V0i3dz0MKFG-QKvbfKT6_Dd8FVpe4jnU/edit?usp=sharing
 
 ## POC 3 — Ledger + PIX Sandbox com Idempotência
 
