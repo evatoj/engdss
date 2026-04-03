@@ -59,7 +59,8 @@
         },
         "serve": {
           "options": {
-            "host": "0.0.0.0"
+            "host": "0.0.0.0",
+            "allowedHosts": ["localhost", "127.0.0.1"]
           },
           "builder": "@angular/build:dev-server",
           "configurations": {
@@ -70,7 +71,7 @@
               "buildTarget": "angular-engdss:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"

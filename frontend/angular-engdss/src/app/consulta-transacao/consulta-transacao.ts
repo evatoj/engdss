@@ -1,110 +1,45 @@
 import { Component } from '@angular/core';
-import { StatusTransacao } from '../../../models/type_status_transacao';
-import { finalize } from 'rxjs';
-import { TransacaoResponse } from '../../../models/transacao_response';
-import { TransacaoService } from '../../../serviços/transacao-service';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { MessageModule } from 'primeng/message';
-import { DividerModule } from 'primeng/divider';
-import { SkeletonModule } from 'primeng/skeleton';
+import { InputTextModule } from 'primeng/inputtext';
+
+import { TransacaoService } from '../../../serviços/transacao-service';
+import { TransacaoResponse } from '../../../models/transacao_response';
 
 @Component({
   selector: 'app-consulta-transacao',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    CurrencyPipe,
-    DatePipe,
     CardModule,
-    InputTextModule,
     ButtonModule,
-    TagModule,
-    MessageModule,
-    DividerModule,
-    SkeletonModule],
-  templateUrl: './consulta-transacao.html',
-  styleUrl: './consulta-transacao.css',
+    InputTextModule
+  ],
+  templateUrl: './consulta-transacao.html'
 })
-export class ConsultaTransacao {
-
-idTransacao = '';
-  loading = false;
-  pesquisou = false;
-
+export class ConsultaTransacaoComponent {
+  transacaoId: string | null = null;
   transacao: TransacaoResponse | null = null;
-  mensagemErro = '';
 
   constructor(private transacaoService: TransacaoService) {}
 
   consultar(): void {
-    const id = this.idTransacao.trim();
-
-    this.pesquisou = true;
-    this.transacao = null;
-    this.mensagemErro = '';
-
-    if (!id) {
-      this.mensagemErro = 'Informe o ID da transação.';
+    if (!this.transacaoId) {
       return;
     }
 
-    this.loading = true;
-
-    this.transacaoService
-      .consultarPorId(id)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-        })
-      )
-      .subscribe((response) => {
-        this.transacao = response;
-      });
-  }
-
-  limpar(): void {
-    this.idTransacao = '';
-    this.transacao = null;
-    this.mensagemErro = '';
-    this.pesquisou = false;
-  }
-
-  getSeverity(status: StatusTransacao): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case 'SUCCESS':
-        return 'success';
-      case 'PENDING':
-        return 'warn';
-      case 'PROCESSING':
-        return 'info';
-      case 'FAILED':
-        return 'danger';
-      case 'CANCELLED':
-        return 'secondary';
-      default:
-        return 'secondary';
-    }
-  }
-
-  getStatusLabel(status: StatusTransacao): string | undefined {
-    switch (status) {
-      case 'SUCCESS':
-        return 'Sucesso';
-      case 'PENDING':
-        return 'Pendente';
-      case 'PROCESSING':
-        return 'Processando';
-      case 'FAILED':
-        return 'Falhou';
-      case 'CANCELLED':
-        return 'Cancelada';
-      default:
-        return undefined;
-    }
+    this.transacaoService.buscarTransacaoPorId(this.transacaoId).subscribe({
+      next: (res) => {
+        this.transacao = res;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar transação', err);
+        this.transacao = null;
+      }
+    });
   }
 }

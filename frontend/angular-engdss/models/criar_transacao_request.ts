@@ -1,6 +1,6 @@
 export interface CriarTransacaoRequest {
-  chavePix: string;
+  usuarioId: string;
+  chavePixDestino: string;
   valor: number;
   descricao?: string;
-  idempotencyKey?: string;
 }
