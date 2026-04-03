@@ -11,6 +11,58 @@
 
 Implementar um ledger de dupla entrada (double-entry) integrado com a API PIX em sandbox garantindo idempotência e quarentena financeira
 
+## Como executar o projeto
+
+### 1. Subir o SigNoz (Observabilidade)
+
+Antes de iniciar a aplicação, é necessário subir o ambiente de observabilidade.
+
+```bash
+cd observabilidade/deploy/docker
+docker compose build
+docker compose up -d
+```
+
+Após subir os containers, acesse:
+
+[http://localhost:3301](http://localhost:3301)
+
+Na primeira execução, será necessário realizar o cadastro inicial no SigNoz.
+
+**Você pode usar informações ficitícias pois é algo que está funcionando localmente.**
+
+Esse passo é obrigatório apenas na primeira vez.
+
+---
+
+### 2. Subir a POC (Ledger + PIX)
+
+Após o SigNoz estar rodando, volte para a raiz do projeto e execute:
+
+```bash
+./start-all.sh
+```
+
+Esse script irá iniciar todos os serviços da aplicação.
+
+---
+
+### 3. Execuções futuras
+
+Depois da configuração inicial do SigNoz, você pode iniciar a aplicação diretamente com:
+
+```bash
+./start-all.sh
+```
+
+Não é necessário repetir o setup do SigNoz.
+
+---
+
+### Observação
+
+Certifique-se de que o SigNoz esteja rodando antes de iniciar a POC.
+
 ## Grupo Responsável e Responsabilidades:
 
 * Henrique Fabrício de Souza Bandeira (Trade-offs, stack tecnológico, Setup inicial do Docker)
