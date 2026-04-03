@@ -12,3 +12,15 @@ Em resumo, Java + Spring Boot foi escolhido por oferecer uma base mais robusta e
 ## Front-End: JavaScript + Angular
 
 Não houve uma motivo especial para a escolha do Front-End, pegamos o que os membros do grupo tinham mais familiaridade, pois acreditamos que a inteface da aplicação não vai influenciar na arquitetura ou funcionalidades essenciais do projeto.
+
+## Testes: K6
+
+Para simples testes de carga, a fim de poder verificar, junto a contêineres intencionalmente caindo e se reerguendo, o quanto estes contêineres conseguem ter casos de sucesso nestes testes de carga e também de resiliência.
+
+## Broker: RabbitMQ
+
+Para o padrão Outbox escolhido, precisa-se um broker e o RabbitMQ é bem conhecido.
+
+## Observabilidade: Signoz
+
+Mostra de forma gráfica e relacionada traces, métricas, logs e exceções, sendo de fácil configuração e relação entre frontend, backend e outros módulos.
